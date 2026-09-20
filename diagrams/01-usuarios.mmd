@@ -1,0 +1,155 @@
+%% ============================================================
+%% RAPPI - DOMINIO 01: USUARIOS, CUENTAS Y ACCESO
+%% Jerarquía de actores, verificación de identidad, direcciones
+%% y dispositivos. Rappi tiene 4 tipos de usuario: cliente,
+%% repartidor (rappitendero), comercio y colaborador interno.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class User {
+        <<abstract>>
+        -UUID id
+        +String nombreCompleto
+        +String email
+        -String passwordHash
+        +String telefono
+        +String fotoUrl
+        +AccountStatus estado
+        +DateTime creadoEn
+        +DateTime ultimoAcceso
+        +login(credenciales) Token
+        +logout() void
+        +verificarIdentidad(documentos) Boolean
+        +actualizarPerfil(datos) User
+        +cambiarTelefono(numero) void
+    }
+
+    class Customer {
+        +String telefono
+        +Boolean telefonoVerificado
+        +String referidoPor
+        +Int pedidosTotales
+        +Decimal ticketPromedio
+        +crearPedido() Order
+        +calificarServicio(puntaje) Review
+        +guardarDireccion(Address) Address
+        +aplicarCupon(codigo) Coupon
+    }
+
+    class Courier {
+        +String documento
+        +String placa
+        +VehicleType tipoVehiculo
+        +Boolean disponible
+        +Decimal rating
+        +Decimal gananciasAcumuladas
+        +Boolean conectado
+        +conectarse() void
+        +aceptarEntrega(assignment) Boolean
+        +rechazarEntrega(assignment, motivo) void
+        +actualizarUbicacion(GeoPoint) void
+        +registrarPruebaDeEntrega(evidencia) void
+        +calcularGanancias(periodo) Decimal
+    }
+
+    class MerchantUser {
+        +String cargo
+        +UUID tiendaId
+        +Permiso[] permisos
+        +gestionarTienda() void
+        +publicarProducto(Product) Product
+        +actualizarInventario(item, cantidad) void
+        +abrirTienda() void
+        +cerrarTienda() void
+        +verReporteVentas() Report
+    }
+
+    class Admin {
+        +String area
+        +String nivel
+        +verDashboard() Dashboard
+        +resolverIncidencia(Incident) void
+        +bloquearUsuario(user, motivo) void
+        +ajustarComision(store, porcentaje) void
+        +auditar(accion) AuditLog
+    }
+
+    class Address {
+        +UUID id
+        +String etiqueta
+        +String direccion
+        +String ciudad
+        +String notas
+        +GeoPoint ubicacion
+        +Boolean esFavorita
+        +distanciaA(GeoPoint) Double
+        +validarCobertura() Boolean
+    }
+
+    class Device {
+        +UUID id
+        +String plataforma
+        +String modelo
+        +String pushToken
+        +String versionApp
+        +DateTime ultimaConexion
+        +registrarPush(token) void
+        +esCompatible() Boolean
+    }
+
+    class GeoPoint {
+        +Double latitud
+        +Double longitud
+        +distanciaA(GeoPoint) Double
+    }
+
+    class AccountStatus {
+        <<enumeration>>
+        PENDIENTE
+        ACTIVO
+        SUSPENDIDO
+        ELIMINADO
+    }
+
+    class VehicleType {
+        <<enumeration>>
+        MOTO
+        BICICLETA
+        AUTOMOVIL
+        A_PIE
+    }
+
+    class Token {
+        +String valor
+        +DateTime expiraEn
+        +Boolean valido()
+    }
+
+    class Report
+    class Dashboard
+    class Permiso
+    class Incident
+    class AuditLog
+
+    %% ================== RELACIONES ==================
+    User <|-- Customer
+    User <|-- Courier
+    User <|-- MerchantUser
+    User <|-- Admin
+
+    User "1" --> "0..*" Address : tiene
+    User "1" --> "0..*" Device : usa
+    User "1" --> "1" AccountStatus : tiene
+    User "1" --> "0..*" Token : obtiene
+    Courier "1" --> "1" VehicleType : conduce
+
+    Address "1" *-- "1" GeoPoint : ubicada en
+    Courier "1" ..> "0..*" GeoPoint : reporta
+
+    Customer "1" --> "0..*" Address : guarda
+    MerchantUser "1" --> "0..*" Permiso : posee
+    Admin "1" --> "0..*" AuditLog : genera
+    Admin ..> Incident : resuelve
+    MerchantUser ..> Report : consulta
+    MerchantUser ..> Dashboard : consulta

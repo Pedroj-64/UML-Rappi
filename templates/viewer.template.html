@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rappi · Diagrama de Clases UML</title>
+<style>
+  :root{
+    --bg:#0e1015; --bg2:#141821; --panel:#171b24; --panel2:#1d2230;
+    --border:#262c3a; --text:#e8ecf4; --muted:#8b93a7; --accent:#ff441f;
+    --accent-soft:rgba(255,68,31,.15); --shadow:0 12px 34px rgba(0,0,0,.45);
+    --svg-bg:#0e1015;
+  }
+  html[data-theme="light"]{
+    --bg:#f4f5f8; --bg2:#ffffff; --panel:#ffffff; --panel2:#f0f2f6;
+    --border:#dcdfe6; --text:#161a22; --muted:#666e80; --accent:#e83a15;
+    --accent-soft:rgba(232,58,21,.12); --shadow:0 10px 28px rgba(20,25,35,.12);
+    --svg-bg:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--bg); color:var(--text); overflow:hidden;
+    font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input{font:inherit;color:inherit}
+  .app{display:grid;grid-template-columns:288px 1fr;height:100vh}
+
+  /* ---------- Sidebar ---------- */
+  aside{
+    background:var(--panel);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;min-height:0
+  }
+  .brand{display:flex;gap:12px;align-items:center;padding:20px 18px 16px}
+  .logo{
+    width:42px;height:42px;border-radius:12px;flex:0 0 auto;
+    background:linear-gradient(140deg,var(--accent),#ff8a3d);
+    display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;
+    box-shadow:0 6px 18px rgba(255,68,31,.35)
+  }
+  .brand h1{margin:0;font-size:16px;letter-spacing:.2px}
+  .brand p{margin:2px 0 0;font-size:11.5px;color:var(--muted)}
+  nav{padding:6px 10px 12px;overflow:auto;flex:1;min-height:0}
+  nav button{
+    width:100%;display:flex;align-items:center;gap:10px;text-align:left;
+    background:transparent;border:1px solid transparent;border-radius:10px;
+    padding:9px 10px;cursor:pointer;margin-bottom:3px;transition:.14s
+  }
+  nav button:hover{background:var(--panel2)}
+  nav button.active{background:var(--accent-soft);border-color:rgba(255,68,31,.35)}
+  nav button.active .nav-num{color:var(--accent)}
+  .nav-section{
+    font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted);padding:13px 10px 5px;opacity:.9
+  }
+  .nav-section:first-child{padding-top:4px}
+  .nav-body{min-width:0;flex:1}
+  .nav-title{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nav-sub{display:block;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nav-badge{
+    font-size:10px;font-weight:700;background:var(--accent);color:#fff;
+    border-radius:999px;padding:1px 7px;flex:0 0 auto
+  }
+  .side-foot{
+    border-top:1px solid var(--border);padding:11px 18px;font-size:11.5px;color:var(--muted)
+  }
+  .side-foot b{color:var(--text)}
+
+  /* ---------- Main ---------- */
+  main{display:flex;flex-direction:column;min-width:0;min-height:0}
+  .toolbar{
+    display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+    padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--border)
+  }
+  .titles h2{margin:0;font-size:15px}
+  .titles p{margin:3px 0 0;font-size:11.5px;color:var(--muted);max-width:56ch}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .search{position:relative;display:flex;align-items:center}
+  .search input{
+    width:230px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;
+    padding:8px 62px 8px 32px;outline:none;transition:.14s
+  }
+  .search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .search svg{position:absolute;left:10px;opacity:.5;pointer-events:none}
+  .count{
+    position:absolute;right:10px;font-size:10.5px;color:var(--muted);
+    font-variant-numeric:tabular-nums;pointer-events:none
+  }
+  .group{
+    display:flex;align-items:center;gap:2px;background:var(--bg2);
+    border:1px solid var(--border);border-radius:9px;padding:2px
+  }
+  .group button{
+    background:transparent;border:0;border-radius:7px;min-width:32px;height:28px;
+    cursor:pointer;font-size:13px;display:grid;place-items:center;transition:.14s
+  }
+  .group button:hover{background:var(--panel2)}
+  .group button:active{transform:scale(.94)}
+  #zoomLabel{
+    font-size:11px;color:var(--muted);min-width:44px;text-align:center;
+    font-variant-numeric:tabular-nums
+  }
+  .switch{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none}
+  .switch input{accent-color:var(--accent);cursor:pointer}
+
+  /* ---------- Viewport ---------- */
+  .viewport{
+    position:relative;flex:1;min-height:0;overflow:hidden;background:var(--svg-bg);
+    cursor:grab;background-image:radial-gradient(circle at 1px 1px, rgba(140,150,175,.22) 1px, transparent 0);
+    background-size:26px 26px
+  }
+  .viewport.grabbing{cursor:grabbing}
+  .stage{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+  .stage svg{display:block}
+  .stage .search-hit rect,.stage .search-hit path,.stage .search-hit polygon,.stage .search-hit ellipse{
+    stroke:var(--accent) !important;stroke-width:3px !important
+  }
+  .stage .search-hit .label,.stage .search-hit text{fill:var(--accent) !important;font-weight:700}
+  .stage .search-dim{opacity:.10;transition:opacity .16s}
+  .stage .search-hide{opacity:0;transition:opacity .16s;pointer-events:none}
+  .stage .node{cursor:pointer}
+
+  .legend{
+    position:absolute;left:14px;bottom:14px;background:var(--panel);
+    border:1px solid var(--border);border-radius:11px;padding:10px 13px;
+    font-size:11px;color:var(--muted);box-shadow:var(--shadow);max-width:250px
+  }
+  .legend b{display:block;color:var(--text);font-size:11px;margin-bottom:6px}
+  .legend div{display:flex;gap:8px;align-items:center;margin-top:3px}
+  .legend code{color:var(--accent);font-weight:700;font-family:ui-monospace,Menlo,monospace;min-width:38px}
+
+  .overlay{
+    position:absolute;inset:0;display:grid;place-items:center;background:var(--svg-bg);
+    font-size:13px;color:var(--muted);text-align:center;padding:24px
+  }
+  .overlay[hidden]{display:none}
+  .error{color:var(--accent);white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:11.5px}
+
+  .statusbar{
+    display:flex;justify-content:space-between;gap:14px;align-items:center;
+    padding:7px 18px;font-size:11px;color:var(--muted);
+    background:var(--panel);border-top:1px solid var(--border)
+  }
+  .statusbar .hint{opacity:.75}
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    aside{max-height:38vh}
+    .search input{width:160px}
+    .titles{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="logo">R</div>
+      <div>
+        <h1>Rappi · UML</h1>
+        <p>Modelo de clases de la empresa</p>
+      </div>
+    </div>
+    <nav id="nav" aria-label="Diagramas"></nav>
+    <div class="side-foot">
+      <b id="statDiagrams">0</b> diagramas · <b id="statClases">0</b> clases ·
+      <b id="statEstados">0</b> estados · <b id="statParticipantes">0</b> participantes ·
+      <b id="statRels">0</b> relaciones
+    </div>
+  </aside>
+
+  <main>
+    <header class="toolbar">
+      <div class="titles">
+        <h2 id="diagTitle">Cargando…</h2>
+        <p id="diagDesc"></p>
+      </div>
+      <div class="controls">
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+            <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+          </svg>
+          <input id="search" type="search" placeholder="Buscar…  ( / )" autocomplete="off" spellcheck="false">
+          <span class="count" id="searchCount"></span>
+        </div>
+        <label class="switch" title="Oculta por completo las clases que no coinciden">
+          <input type="checkbox" id="isolate"><span>Aislar</span>
+        </label>
+        <div class="group">
+          <button id="zoomOut" title="Alejar  (-)">−</button>
+          <span id="zoomLabel">100%</span>
+          <button id="zoomIn" title="Acercar  (+)">+</button>
+          <button id="fit" title="Ajustar a pantalla  (F)">⤢</button>
+          <button id="reset" title="Restablecer  (0)">⟲</button>
+        </div>
+        <div class="group">
+          <button id="exportPng" title="Descargar PNG">PNG</button>
+          <button id="exportSvg" title="Descargar SVG">SVG</button>
+          <button id="themeBtn" title="Cambiar tema claro / oscuro">◐</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="viewport" id="viewport">
+      <div class="stage" id="stage"></div>
+      <div class="legend" id="legend">
+        <b>Notación UML</b>
+        <div><code>&lt;|--</code><span>Herencia (es-un)</span></div>
+        <div><code>*--</code><span>Composición</span></div>
+        <div><code>o--</code><span>Agregación</span></div>
+        <div><code>--&gt;</code><span>Asociación</span></div>
+        <div><code>..&gt;</code><span>Dependencia</span></div>
+        <div><code>1&nbsp;0..*</code><span>Multiplicidad</span></div>
+      </div>
+      <div class="overlay" id="overlay">Cargando Mermaid…</div>
+    </div>
+
+    <footer class="statusbar">
+      <span id="statusLeft"></span>
+      <span class="hint">Arrastra para mover · Rueda para zoom · Clic en un elemento para buscarlo · Doble clic para ajustar</span>
+    </footer>
+  </main>
+</div>
+
+<script id="uml-data" type="application/json">__DATA__</script>
+<script type="module">
+/* =========================================================================
+   Rappi · Visor de Diagramas de Clases UML (Mermaid)
+   Single-file: zoom/pan, búsqueda, aislamiento, export PNG/SVG, temas.
+   ========================================================================= */
+
+const DATA = JSON.parse(document.getElementById('uml-data').textContent);
+const DIAGRAMS = DATA.diagrams;
+const BY_ID = Object.fromEntries(DIAGRAMS.map(d => [d.id, d]));
+
+/* ---------------------------------------------------------------------------
+   Contrato de tipos de diagrama (clases / estados / participantes).
+   Inyectado por build.mjs desde scripts/tipos.mjs — no editar aquí.
+   --------------------------------------------------------------------------- */
+__TIPOS__
+
+const state = {
+  current: null,
+  scale: 1, tx: 0, ty: 0,
+  cache: new Map(),      // id -> { svg, w, h }
+  query: '',
+  theme: localStorage.getItem('rappi-uml-theme') || 'dark',
+  natW: 0, natH: 0
+};
+
+const $ = (id) => document.getElementById(id);
+const viewport = $('viewport');
+const stage = $('stage');
+const overlay = $('overlay');
+
+/* ----------------------------- Mermaid ---------------------------------- */
+let mermaid = null;
+
+async function loadMermaid() {
+  const sources = [
+    'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs',
+    'https://unpkg.com/mermaid@11/dist/mermaid.esm.min.mjs',
+    'https://esm.sh/mermaid@11'
+  ];
+  for (const src of sources) {
+    try { return (await import(src)).default; } catch (e) { /* siguiente CDN */ }
+  }
+  throw new Error('No se pudo cargar Mermaid desde el CDN. Revisa tu conexión a internet.');
+}
+
+function initMermaid() {
+  const dark = state.theme === 'dark';
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'loose',
+    // htmlLabels:false evita <foreignObject>, imprescindible para poder
+    // rasterizar el SVG a PNG con canvas.
+    htmlLabels: false,
+    theme: dark ? 'dark' : 'default',
+    fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    themeVariables: dark ? {
+      background: '#0e1015',
+      primaryColor: '#1d2230',
+      primaryTextColor: '#e8ecf4',
+      primaryBorderColor: '#4a5468',
+      lineColor: '#7b869c',
+      textColor: '#e8ecf4',
+      secondaryColor: '#232a38',
+      tertiaryColor: '#1a1f2b'
+    } : {
+      primaryColor: '#ffffff',
+      primaryTextColor: '#161a22',
+      primaryBorderColor: '#9aa3b4',
+      lineColor: '#5c6577',
+      textColor: '#161a22'
+    },
+    class: { useMaxWidth: false },
+    classDiagram: { useMaxWidth: false }
+  });
+  document.documentElement.dataset.theme = state.theme;
+}
+
+/* ---------------------------- Navegación -------------------------------- */
+function buildNav() {
+  const nav = $('nav');
+  nav.innerHTML = '';
+  let seccion = null;
+  DIAGRAMS.forEach((d) => {
+    if (d.seccion !== seccion) {
+      seccion = d.seccion;
+      const h = document.createElement('div');
+      h.className = 'nav-section';
+      h.textContent = seccion;
+      nav.appendChild(h);
+    }
+    const t = TIPOS[d.tipo] || TIPOS.class;
+    const b = document.createElement('button');
+    b.dataset.id = d.id;
+    b.innerHTML = `
+      <span class="nav-body">
+        <span class="nav-title">${d.titulo}</span>
+        <span class="nav-sub">${d.unidades.length} ${t.unidad}</span>
+      </span>
+      <span class="nav-badge" hidden></span>`;
+    b.addEventListener('click', () => go(d.id));
+    nav.appendChild(b);
+  });
+  updateNavBadges();
+  $('statDiagrams').textContent = DIAGRAMS.length;
+  $('statClases').textContent = DATA.totalClasses;
+  $('statEstados').textContent = DATA.totalEstados;
+  $('statParticipantes').textContent = DATA.totalParticipantes;
+  $('statRels').textContent = DATA.totalRels;
+}
+
+function updateNavBadges() {
+  const q = state.query.trim().toLowerCase();
+  document.querySelectorAll('#nav button').forEach(b => {
+    const badge = b.querySelector('.nav-badge');
+    const d = BY_ID[b.dataset.id];
+    if (!q || !d) { badge.hidden = true; return; }
+    const n = d.unidades.filter(c => c.toLowerCase().includes(q)).length;
+    badge.hidden = n === 0;
+    badge.textContent = n;
+  });
+}
+
+/* ----------------------------- Render ----------------------------------- */
+async function go(id) {
+  const d = BY_ID[id];
+  if (!d) return;
+  state.current = id;
+
+  document.querySelectorAll('#nav button').forEach(b =>
+    b.classList.toggle('active', b.dataset.id === id));
+
+  $('diagTitle').textContent = d.titulo;
+  $('diagDesc').textContent = d.descripcion;
+  $('legend').hidden = d.tipo !== 'class';
+
+  try {
+    let entry = state.cache.get(id);
+    if (!entry) {
+      overlay.hidden = false;
+      overlay.className = 'overlay';
+      overlay.textContent = 'Renderizando…';
+      const { svg } = await mermaid.render('uml-svg-' + id, d.code);
+      stage.innerHTML = svg;
+      const el = stage.querySelector('svg');
+      const vb = el.viewBox && el.viewBox.baseVal;
+      const bbox = el.getBBox();
+      const w = Math.max(1, Math.round((vb && vb.width) || bbox.width));
+      const h = Math.max(1, Math.round((vb && vb.height) || bbox.height));
+      el.setAttribute('width', w);
+      el.setAttribute('height', h);
+      el.style.maxWidth = 'none';
+      el.style.display = 'block';
+      stage.style.width = w + 'px';
+      stage.style.height = h + 'px';
+      entry = { svg, w, h };
+      state.cache.set(id, entry);
+    } else {
+      stage.innerHTML = entry.svg;
+      stage.style.width = entry.w + 'px';
+      stage.style.height = entry.h + 'px';
+    }
+    state.natW = entry.w;
+    state.natH = entry.h;
+    overlay.hidden = true;
+    fit();
+    hookNodes();
+    applySearch();
+    $('statusLeft').textContent = `${d.titulo} · ${d.unidades.length} ${contratoActual().unidad}`;
+  } catch (err) {
+    overlay.hidden = false;
+    overlay.className = 'overlay error';
+    overlay.textContent = 'Error al renderizar el diagrama:\n\n' + (err && err.message ? err.message : String(err));
+  }
+}
+
+/** Contrato del diagrama que se está viendo (clases, estados o participantes). */
+function contratoActual() {
+  const d = BY_ID[state.current];
+  return (d && TIPOS[d.tipo]) || TIPOS.class;
+}
+
+/** Elementos buscables del diagrama actual, con su nombre ya resuelto. */
+function elementos() {
+  const contrato = contratoActual();
+  return [...stage.querySelectorAll(contrato.selector)]
+    .map(el => ({ el, nombre: contrato.nombre(el) }))
+    .filter(x => x.nombre);
+}
+
+function hookNodes() {
+  elementos().forEach(({ el, nombre }) => {
+    el.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      $('search').value = nombre;
+      state.query = nombre;
+      applySearch();
+      updateNavBadges();
+    });
+  });
+}
+
+/* ------------------------------ Zoom / pan ------------------------------ */
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+function apply() {
+  stage.style.transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.scale})`;
+  $('zoomLabel').textContent = Math.round(state.scale * 100) + '%';
+}
+
+function fit() {
+  if (!state.natW || !state.natH) return;
+  const pad = 46;
+  const vw = viewport.clientWidth;
+  const vh = viewport.clientHeight;
+  const s = clamp(Math.min((vw - pad * 2) / state.natW, (vh - pad * 2) / state.natH), 0.05, 1.4);
+  state.scale = s;
+  state.tx = (vw - state.natW * s) / 2;
+  state.ty = (vh - state.natH * s) / 2;
+  apply();
+}
+
+function reset() {
+  state.scale = 1;
+  state.tx = 24;
+  state.ty = 24;
+  apply();
+}
+
+function zoomAt(factor, cx, cy) {
+  const ns = clamp(state.scale * factor, 0.05, 6);
+  const k = ns / state.scale;
+  state.tx = cx - k * (cx - state.tx);
+  state.ty = cy - k * (cy - state.ty);
+  state.scale = ns;
+  apply();
+}
+
+function centerZoom(factor) {
+  zoomAt(factor, viewport.clientWidth / 2, viewport.clientHeight / 2);
+}
+
+viewport.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const r = viewport.getBoundingClientRect();
+  zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top);
+}, { passive: false });
+
+let drag = null;
+viewport.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0) return;
+  if (e.target.closest('.legend')) return;
+  drag = { x: e.clientX, y: e.clientY, tx: state.tx, ty: state.ty };
+  viewport.classList.add('grabbing');
+  viewport.setPointerCapture(e.pointerId);
+});
+viewport.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  state.tx = drag.tx + (e.clientX - drag.x);
+  state.ty = drag.ty + (e.clientY - drag.y);
+  apply();
+});
+const endDrag = () => { drag = null; viewport.classList.remove('grabbing'); };
+viewport.addEventListener('pointerup', endDrag);
+viewport.addEventListener('pointercancel', endDrag);
+viewport.addEventListener('dblclick', fit);
+
+/* ------------------------------ Búsqueda -------------------------------- */
+function applySearch() {
+  const q = state.query.trim().toLowerCase();
+  const isolate = $('isolate').checked;
+  const lista = elementos();
+  let hits = 0;
+
+  lista.forEach(({ el, nombre }) => {
+    const isHit = !q || nombre.toLowerCase().includes(q);
+    if (isHit && q) hits++;
+    el.classList.toggle('search-hit', !!q && isHit);
+    el.classList.toggle('search-dim', !!q && !isHit && !isolate);
+    el.classList.toggle('search-hide', !!q && !isHit && isolate);
+  });
+
+  const total = lista.length;
+  $('searchCount').textContent = !q
+    ? `${total} ${contratoActual().unidad}`
+    : `${hits}/${total}`;
+}
+
+let searchTimer = null;
+$('search').addEventListener('input', (e) => {
+  state.query = e.target.value;
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { applySearch(); updateNavBadges(); }, 90);
+});
+
+$('search').addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { $('search').value = ''; state.query = ''; applySearch(); updateNavBadges(); return; }
+  if (e.key !== 'Enter') return;
+  const q = state.query.trim().toLowerCase();
+  if (!q) return;
+  const matches = DIAGRAMS.filter(d => d.unidades.some(c => c.toLowerCase().includes(q)));
+  if (!matches.length) return;
+  const idx = matches.findIndex(d => d.id === state.current);
+  go(matches[(idx + 1) % matches.length].id);
+});
+
+$('isolate').addEventListener('change', applySearch);
+
+/* ------------------------------- Export --------------------------------- */
+function currentSvgEl() { return stage.querySelector('svg'); }
+
+function serializeSvg() {
+  const el = currentSvgEl();
+  if (!el) return null;
+  const clone = el.cloneNode(true);
+  const w = state.natW, h = state.natH;
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+  clone.setAttribute('width', w);
+  clone.setAttribute('height', h);
+  clone.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  clone.style.maxWidth = 'none';
+  clone.querySelectorAll('.search-hit,.search-dim,.search-hide').forEach(n =>
+    n.classList.remove('search-hit', 'search-dim', 'search-hide'));
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('x', 0); bg.setAttribute('y', 0);
+  bg.setAttribute('width', w); bg.setAttribute('height', h);
+  bg.setAttribute('fill', state.theme === 'dark' ? '#0e1015' : '#ffffff');
+  clone.insertBefore(bg, clone.firstChild);
+  return new XMLSerializer().serializeToString(clone);
+}
+
+function fileName(ext) {
+  const d = BY_ID[state.current];
+  const slug = (d ? d.id : 'rappi').replace(/[^a-z0-9-]/gi, '-');
+  return `rappi-uml-${slug}.${ext}`;
+}
+
+function download(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+$('exportSvg').addEventListener('click', () => {
+  const svg = serializeSvg();
+  if (!svg) return;
+  download(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), fileName('svg'));
+});
+
+$('exportPng').addEventListener('click', () => {
+  const svg = serializeSvg();
+  if (!svg) return;
+  const w = state.natW, h = state.natH, scale = 2;
+  const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(w * scale);
+    canvas.height = Math.ceil(h * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = state.theme === 'dark' ? '#0e1015' : '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((b) => b && download(b, fileName('png')), 'image/png');
+  };
+  img.onerror = () => alert('No se pudo generar el PNG en este navegador. Usa la exportación SVG.');
+  img.src = url;
+});
+
+/* ------------------------------- Tema ----------------------------------- */
+$('themeBtn').addEventListener('click', async () => {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('rappi-uml-theme', state.theme);
+  initMermaid();
+  state.cache.clear();
+  stage.innerHTML = '';
+  await go(state.current);
+});
+
+/* ---------------------------- Controles --------------------------------- */
+$('zoomIn').addEventListener('click', () => centerZoom(1.25));
+$('zoomOut').addEventListener('click', () => centerZoom(1 / 1.25));
+$('fit').addEventListener('click', fit);
+$('reset').addEventListener('click', reset);
+
+document.addEventListener('keydown', (e) => {
+  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+  if (e.key === '/' && !typing) { e.preventDefault(); $('search').focus(); return; }
+  if (typing) return;
+  if (e.key === '+' || e.key === '=') centerZoom(1.2);
+  if (e.key === '-' || e.key === '_') centerZoom(1 / 1.2);
+  if (e.key === 'f' || e.key === 'F') fit();
+  if (e.key === '0') reset();
+});
+
+window.addEventListener('resize', () => { if (state.natW) fit(); });
+
+/* ------------------------------ Arranque -------------------------------- */
+(async () => {
+  buildNav();
+  try {
+    mermaid = await loadMermaid();
+  } catch (err) {
+    overlay.className = 'overlay error';
+    overlay.textContent = err.message;
+    return;
+  }
+  initMermaid();
+  await go(DIAGRAMS[0].id);
+})();
+</script>
+</body>
+</html>

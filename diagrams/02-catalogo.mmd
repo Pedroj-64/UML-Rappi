@@ -1,0 +1,114 @@
+%% ============================================================
+%% RAPPI - DOMINIO 02: CATALOGO, COMERCIOS E INVENTARIO
+%% Modela tanto restaurantes/aliados como dark stores de
+%% Rappi Turbo, con menús, productos, categorías y stock.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class Store {
+        +UUID id
+        +String nombre
+        +String nit
+        +String razonSocial
+        +StoreKind tipo
+        +String direccion
+        +GeoPoint ubicacion
+        +String telefono
+        +Boolean abierta
+        +Decimal rating
+        +Int tiempoPreparacionMin
+        +Decimal comisionPorcentaje
+        +DateTime creadoEn
+        +abrir() void
+        +cerrar() void
+        +estaEnHorario() Boolean
+        +calcularDisponibilidad() Boolean
+        +actualizarRating(puntaje) void
+        +tiempoEntregaEstimado(Address) Int
+    }
+
+    class StoreCategory {
+        +UUID id
+        +String nombre
+        +String iconoUrl
+        +Decimal comisionBase
+        +Int orden
+    }
+
+    class Menu {
+        +UUID id
+        +String nombre
+        +DateTime vigenteDesde
+        +DateTime vigenteHasta
+        +Boolean activo
+        +agregarProducto(Product) void
+        +quitarProducto(productId) void
+        +productosPorCategoria(cat) Product[]
+        +estaVigente() Boolean
+    }
+
+    class Product {
+        +UUID id
+        +String sku
+        +String nombre
+        +String descripcion
+        +Decimal precio
+        +Decimal precioPromocional
+        +String imagenUrl
+        +Int tiempoPreparacionMin
+        +Boolean disponible
+        +Boolean requiereEdad
+        +Int stock
+        +actualizarPrecio(precio) void
+        +verificarStock() Boolean
+        +aplicarDescuento(porcentaje) void
+        +precioFinal() Decimal
+    }
+
+    class ProductCategory {
+        +UUID id
+        +String nombre
+        +Int orden
+        +Boolean visible
+    }
+
+    class InventoryItem {
+        +UUID id
+        +Int cantidad
+        +Int cantidadReservada
+        +Int puntoReposicion
+        +String ubicacionBodega
+        +DateTime ultimaRevision
+        +reservar(cantidad) Boolean
+        +liberar(cantidad) void
+        +reponer(cantidad) void
+        +necesitaReposicion() Boolean
+        +disponible() Int
+    }
+
+    class GeoPoint {
+        +Double latitud
+        +Double longitud
+        +distanciaA(GeoPoint) Double
+    }
+
+    class StoreKind {
+        <<enumeration>>
+        RESTAURANTE
+        SUPERMERCADO
+        FARMACIA
+        TIENDA
+        DARK_STORE_TURBO
+    }
+
+    %% ================== RELACIONES ==================
+    Store "0..*" --> "1" StoreCategory : pertenece a
+    Store "1" *-- "1..*" Menu : publica
+    Store "1" *-- "0..*" InventoryItem : almacena
+    Store "1" --> "1" GeoPoint : ubicada en
+    Store "1" --> "1" StoreKind : es de tipo
+
+    Menu "1" o-- "0..*" Product : agrupa
+    Product "0..*" --> "1" ProductCategory : clasificado en
+    InventoryItem "0..*" --> "1" Product : controla stock de

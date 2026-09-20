@@ -1,0 +1,151 @@
+%% ============================================================
+%% RAPPI - DIAGRAMA DE CLASES: VISTA GENERAL (MACRO)
+%% Muestra las clases núcleo de todos los dominios y cómo se
+%% conectan entre sí. El detalle de atributos y métodos vive en
+%% los diagramas por dominio (01..07).
+%% ============================================================
+classDiagram
+    direction LR
+
+    %% ---------- ACTORES / USUARIOS ----------
+    class User {
+        <<abstract>>
+        +UUID id
+        +String nombreCompleto
+        +String email
+        +String telefono
+        +AccountStatus estado
+    }
+
+    class Customer {
+        +String telefono
+        +crearPedido()
+        +calificarServicio()
+    }
+
+    class Courier {
+        +String placa
+        +Boolean disponible
+        +aceptarEntrega()
+        +actualizarUbicacion()
+    }
+
+    class MerchantUser {
+        +String cargo
+        +gestionarTienda()
+        +publicarProducto()
+    }
+
+    class Admin {
+        +String area
+        +verDashboard()
+        +resolverIncidencia()
+    }
+
+    class Address {
+        +String etiqueta
+        +String direccion
+        +GeoPoint ubicacion
+    }
+
+    %% ---------- CATALOGO ----------
+    class Store {
+        +UUID id
+        +String nombre
+        +Boolean abierta
+        +Decimal rating
+    }
+
+    class Product {
+        +UUID id
+        +String nombre
+        +Decimal precio
+        +Boolean disponible
+    }
+
+    %% ---------- PEDIDO ----------
+    class Cart {
+        +Decimal subtotal
+        +agregarItem()
+    }
+
+    class Order {
+        +UUID id
+        +Decimal total
+        +OrderStatus estado
+        +cancelar()
+    }
+
+    class OrderItem {
+        +Int cantidad
+        +Decimal subtotal
+    }
+
+    %% ---------- LOGISTICA ----------
+    class Delivery {
+        +String estado
+        +Int etaMinutos
+        +completar()
+    }
+
+    class Zone {
+        +String nombre
+        +Decimal tarifaBase
+    }
+
+    %% ---------- PAGOS ----------
+    class Payment {
+        +Decimal monto
+        +String estado
+    }
+
+    class PaymentMethod {
+        <<abstract>>
+        +cobrar()
+        +reembolsar()
+    }
+
+    class Card
+    class Wallet
+
+    %% ---------- CRECIMIENTO ----------
+    class Promotion
+    class Subscription
+
+    %% ---------- POSTVENTA ----------
+    class SupportTicket
+    class Review
+    class Notification
+
+    %% ================== RELACIONES ==================
+    User <|-- Customer
+    User <|-- Courier
+    User <|-- MerchantUser
+    User <|-- Admin
+
+    User "1" --> "0..*" Address : registra
+    Customer "1" --> "0..1" Cart : posee
+    Customer "1" --> "0..*" Order : realiza
+    Customer "1" --> "0..*" Review : escribe
+    Customer "0..1" --> "0..1" Subscription : contrata
+
+    MerchantUser "1" --> "0..*" Store : administra
+    Store "1" o-- "0..*" Product : ofrece
+    Store "1" --> "0..*" Order : recibe
+
+    Cart "1" ..> "0..1" Order : se convierte en
+    Order "1" *-- "1..*" OrderItem : contiene
+    OrderItem "0..*" --> "1" Product : referencia
+    Order "1" --> "0..*" Payment : se paga con
+    Order "0..*" --> "0..1" Promotion : aplica
+    Order "1" --> "0..1" Delivery : se entrega en
+    Order "0..*" --> "0..1" SupportTicket : genera
+
+    Delivery "0..*" --> "1" Courier : asignada a
+    Delivery "0..*" --> "1" Zone : ocurre en
+
+    Payment "1" *-- "1" PaymentMethod : usa
+    PaymentMethod <|-- Card
+    PaymentMethod <|-- Wallet
+
+    User "1" --> "0..*" Notification : recibe

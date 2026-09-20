@@ -1,0 +1,57 @@
+%% ============================================================
+%% RAPPI - SECUENCIA: CREAR UN PEDIDO
+%% Desde que el cliente confirma el carrito hasta que la tienda
+%% acepta y se dispara la logística. El pago y la asignación de
+%% repartidor se detallan en sus propios diagramas.
+%% ============================================================
+sequenceDiagram
+    autonumber
+
+    actor Cliente
+    participant App as App Móvil
+    participant API as API de Pedidos
+    participant Cat as Servicio de Catálogo
+    participant Promo as Motor de Promociones
+    participant Pay as Motor de Pagos
+    participant Store as Tienda o POS
+    participant Del as Servicio de Logística
+
+    Cliente->>App: agrega productos al carrito
+    App->>API: POST /carts/items
+    API->>Cat: verificarStock(producto, cantidad)
+    Cat-->>API: stock disponible
+
+    opt producto agotado
+        Cat-->>API: stock insuficiente
+        API-->>App: 409 producto no disponible
+        App-->>Cliente: sugiere una alternativa
+    end
+
+    Cliente->>App: confirma el pedido
+    App->>API: POST /orders
+    API->>API: Cart.convertirEnPedido()
+    Note over API: Order queda en estado CREADO
+
+    API->>Promo: calcularDescuento(order)
+    Promo-->>API: descuento aplicable
+    API->>API: Order.calcularTotal()
+    Note over API: aplica envío, propina y promoción
+
+    API->>Pay: autorizar pago del pedido
+    Note over API,Pay: el detalle está en el diagrama Procesar Pago
+
+    alt pago autorizado
+        Pay-->>API: AUTORIZADO
+        API->>Store: notifica pedido entrante
+        Store-->>API: pedido aceptado
+        API->>API: Order.avanzarEstado(CONFIRMADO)
+        API->>Del: crea la entrega
+        Note over API,Del: el detalle está en el diagrama Asignar Repartidor
+        API-->>App: 201 Order CONFIRMADO
+        App-->>Cliente: confirmación y ETA
+    else pago rechazado
+        Pay-->>API: RECHAZADO
+        API->>API: Order.cancelar(pago rechazado)
+        API-->>App: 402 pago rechazado
+        App-->>Cliente: solicita otro medio de pago
+    end

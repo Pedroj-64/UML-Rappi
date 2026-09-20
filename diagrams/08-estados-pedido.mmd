@@ -1,0 +1,34 @@
+%% ============================================================
+%% RAPPI - DIAGRAMA DE ESTADOS: CICLO DE VIDA DEL PEDIDO
+%% Refleja exactamente el enum OrderStatus definido en
+%% diagrams/03-pedidos.mmd. Cubre el camino feliz, las
+%% cancelaciones y el reembolso posterior.
+%% ============================================================
+stateDiagram-v2
+    direction LR
+
+    [*] --> CREADO : Customer.crearPedido()
+
+    CREADO --> PAGO_PENDIENTE : Order.calcularTotal()
+
+    PAGO_PENDIENTE --> CONFIRMADO : Payment.autorizar() OK
+    PAGO_PENDIENTE --> CANCELADO : pago rechazado o expirado
+
+    CONFIRMADO --> EN_PREPARACION : Store acepta el pedido
+    CONFIRMADO --> CANCELADO : Store rechaza
+
+    EN_PREPARACION --> LISTO_PARA_RECOGER : empaque terminado
+    EN_PREPARACION --> CANCELADO : producto agotado
+
+    LISTO_PARA_RECOGER --> EN_CAMINO : Courier recoge el pedido
+    LISTO_PARA_RECOGER --> CANCELADO : nadie recoge a tiempo
+
+    EN_CAMINO --> ENTREGADO : Delivery.completar(evidencia)
+    EN_CAMINO --> CANCELADO : entrega fallida definitiva
+
+    ENTREGADO --> [*] : Order.generarFactura()
+
+    CANCELADO --> REEMBOLSADO : Refund.procesar()
+    CANCELADO --> [*] : sin cobro previo
+
+    REEMBOLSADO --> [*]

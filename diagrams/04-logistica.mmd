@@ -1,0 +1,159 @@
+%% ============================================================
+%% RAPPI - DOMINIO 04: LOGISTICA Y REPARTO
+%% Asignación de órdenes a rappitenderos, zonas, vehículos,
+%% rutas, turnos y seguimiento en tiempo real.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class Delivery {
+        +UUID id
+        +UUID orderId
+        +UUID courierId
+        +UUID zoneId
+        +DeliveryStatus estado
+        +Decimal distanciaKm
+        +Int etaMinutos
+        +Decimal costoEnvio
+        +DateTime asignadaEn
+        +DateTime recogidaEn
+        +DateTime completadaEn
+        +String pruebaDeEntrega
+        +String motivoFallo
+        +asignarCourier(courier) DeliveryAssignment
+        +actualizarUbicacion(GeoPoint) void
+        +calcularETA() Int
+        +iniciarRecogida() void
+        +completar(evidencia) void
+        +fallar(motivo) void
+    }
+
+    class DeliveryAssignment {
+        +UUID id
+        +UUID deliveryId
+        +UUID courierId
+        +Decimal comisionOfrecida
+        +AssignmentState estado
+        +DateTime propuestaEn
+        +DateTime expiraEn
+        +Int intentos
+        +aceptar() void
+        +rechazar(motivo) void
+        +expirar() void
+        +reintentar() DeliveryAssignment
+        +estaVigente() Boolean
+    }
+
+    class Zone {
+        +UUID id
+        +String nombre
+        +String ciudad
+        +String poligonoGeoJson
+        +Decimal tarifaBase
+        +Decimal multiplicadorDemanda
+        +Int couriersActivos
+        +contiene(GeoPoint) Boolean
+        +tarifaPara(distanciaKm) Decimal
+        +calcularDemanda() Decimal
+        +estaSaturada() Boolean
+    }
+
+    class Vehicle {
+        +UUID id
+        +VehicleType tipo
+        +String placa
+        +String marca
+        +Int capacidadMaxima
+        +Boolean activo
+        +puedeTransportar(pedido) Boolean
+        +validarDocumentos() Boolean
+    }
+
+    class Route {
+        +UUID id
+        +UUID courierId
+        +DateTime fecha
+        +Decimal distanciaTotalKm
+        +Int duracionEstimadaMin
+        +Int paradas
+        +optimizar() void
+        +agregarParada(delivery) void
+        +reordenar() void
+        +proximaParada() Delivery
+    }
+
+    class Shift {
+        +UUID id
+        +UUID courierId
+        +UUID zoneId
+        +DateTime inicio
+        +DateTime fin
+        +Boolean conectado
+        +Decimal horasActivas
+        +Decimal ganancias
+        +iniciar() void
+        +terminar() void
+        +calcularHorasActivas() Decimal
+        +pausar() void
+    }
+
+    class GeoPoint {
+        +Double latitud
+        +Double longitud
+        +DateTime capturadoEn
+        +distanciaA(GeoPoint) Double
+        +esValido() Boolean
+    }
+
+    class DeliveryStatus {
+        <<enumeration>>
+        PENDIENTE
+        ASIGNADA
+        ACEPTADA
+        RECOGIENDO
+        EN_CAMINO
+        ENTREGADA
+        FALLIDA
+        CANCELADA
+    }
+
+    class AssignmentState {
+        <<enumeration>>
+        OFRECIDA
+        ACEPTADA
+        RECHAZADA
+        EXPIRADA
+        REASIGNADA
+    }
+
+    class VehicleType {
+        <<enumeration>>
+        MOTO
+        BICICLETA
+        AUTOMOVIL
+        A_PIE
+    }
+
+    %% ---- Clases externas referenciadas ----
+    class Order
+    class Courier
+    class Address
+
+    %% ================== RELACIONES ==================
+    Order "1" --> "0..1" Delivery : origina
+    Courier "1" --> "0..*" Delivery : entrega
+    Zone "1" --> "0..*" Delivery : agrupa
+    Delivery "1" --> "1" DeliveryStatus : tiene
+
+    Delivery "1" *-- "0..*" DeliveryAssignment : genera
+    DeliveryAssignment "0..*" --> "1" Courier : se ofrece a
+    DeliveryAssignment "1" --> "1" AssignmentState : tiene
+
+    Courier "1" --> "0..1" Vehicle : conduce
+    Vehicle "0..*" --> "1" VehicleType : es de tipo
+    Courier "1" --> "0..*" Shift : trabaja
+    Shift "0..*" --> "1" Zone : cubre
+    Courier "1" --> "0..*" Route : ejecuta
+    Route "1" *-- "1..*" Delivery : ordena
+    Delivery "1" ..> "0..*" GeoPoint : rastrea
+    Address "1" --> "1" GeoPoint : ubicada en

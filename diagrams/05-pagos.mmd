@@ -1,0 +1,204 @@
+%% ============================================================
+%% RAPPI - DOMINIO 05: PAGOS Y FINANZAS
+%% Medios de pago, motor de pagos, billetera RappiPay,
+%% tarjeta RappiCard, reembolsos, liquidaciones a comercios
+%% y repartidores, y facturación.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class PaymentMethod {
+        <<abstract>>
+        +UUID id
+        +UUID userId
+        +String alias
+        +Boolean predeterminado
+        +DateTime creadoEn
+        +cobrar(monto) Transaction
+        +reembolsar(monto) Refund
+        +validar() Boolean
+        +tokenizar() String
+    }
+
+    class Card {
+        +UUID id
+        +String ultimos4
+        +String marca
+        +Int mesExpiracion
+        +Int anioExpiracion
+        +String titular
+        +String tokenPago
+        +Boolean esCredito
+        +estaVigente() Boolean
+        +cobrar(monto) Transaction
+    }
+
+    class Wallet {
+        +UUID id
+        +Decimal saldo
+        +String moneda
+        +Boolean bloqueada
+        +Decimal limiteDiario
+        +recargar(monto, origen) Transaction
+        +retirar(monto, destino) Transaction
+        +transferir(destino, monto) void
+        +saldoDisponible() Decimal
+        +bloquear(motivo) void
+    }
+
+    class Payment {
+        +UUID id
+        +UUID orderId
+        +Decimal monto
+        +String moneda
+        +PaymentProvider proveedor
+        +PaymentStatus estado
+        +String referenciaExterna
+        +DateTime creadoEn
+        +autorizar() Boolean
+        +capturar() Boolean
+        +reembolsar(monto) Refund
+        +verificarEstado() PaymentStatus
+        +reintentar() Payment
+    }
+
+    class Transaction {
+        +UUID id
+        +TransactionType tipo
+        +Decimal monto
+        +Decimal saldoResultante
+        +String referencia
+        +String descripcion
+        +DateTime timestamp
+        +esDebito() Boolean
+    }
+
+    class Refund {
+        +UUID id
+        +UUID paymentId
+        +Decimal monto
+        +String motivo
+        +RefundStatus estado
+        +UUID aprobadoPor
+        +DateTime solicitadoEn
+        +aprobar() void
+        +rechazar(motivo) void
+        +procesar() Transaction
+    }
+
+    class Payout {
+        +UUID id
+        +UUID beneficiarioId
+        +BeneficiaryType tipoBeneficiario
+        +String periodo
+        +Decimal montoBruto
+        +Decimal comision
+        +Decimal montoNeto
+        +PayoutStatus estado
+        +DateTime liquidadoEn
+        +calcularNeto() Decimal
+        +liquidar() Transaction
+        +detalleLineas() PayoutLine[]
+    }
+
+    class Invoice {
+        +UUID id
+        +UUID orderId
+        +String nit
+        +String razonSocial
+        +Decimal subtotal
+        +Decimal impuestos
+        +Decimal propina
+        +Decimal total
+        +String urlPdf
+        +DateTime emitidaEn
+        +generarPDF() String
+        +enviarPorEmail(email) void
+    }
+
+    class PaymentProvider {
+        <<enumeration>>
+        TARJETA_CREDITO
+        PSE
+        EFECTIVO
+        RAPPIPAY
+        RAPPICARD
+        NEQUI
+    }
+
+    class PaymentStatus {
+        <<enumeration>>
+        PENDIENTE
+        AUTORIZADO
+        CAPTURADO
+        RECHAZADO
+        REEMBOLSADO
+        CONTRA_ENTREGA
+    }
+
+    class RefundStatus {
+        <<enumeration>>
+        SOLICITADO
+        APROBADO
+        RECHAZADO
+        PROCESADO
+    }
+
+    class PayoutStatus {
+        <<enumeration>>
+        CALCULADO
+        EN_PROCESO
+        PAGADO
+        RETENIDO
+    }
+
+    class TransactionType {
+        <<enumeration>>
+        PAGO
+        RECARGA
+        RETIRO
+        TRANSFERENCIA
+        REEMBOLSO
+        COMISION
+        PROPINA
+    }
+
+    class BeneficiaryType {
+        <<enumeration>>
+        COMERCIO
+        REPARTIDOR
+        USUARIO
+    }
+
+    %% ---- Clases externas referenciadas ----
+    class User
+    class Order
+    class Customer
+    class Store
+    class Courier
+    class PayoutLine
+
+    %% ================== RELACIONES ==================
+    PaymentMethod <|-- Card
+    PaymentMethod <|-- Wallet
+    PaymentMethod "0..*" --> "1" User : pertenece a
+
+    Order "1" --> "0..*" Payment : se cobra con
+    Payment "1" --> "1" PaymentProvider : usa
+    Payment "1" --> "1" PaymentStatus : tiene
+    Payment "1" --> "0..1" PaymentMethod : instrumento
+    Payment "1" *-- "0..*" Transaction : genera
+    Payment "1" --> "0..*" Refund : origina
+
+    Transaction "1" --> "1" TransactionType : es de tipo
+    Refund "1" --> "1" RefundStatus : tiene
+    Wallet "1" *-- "0..*" Transaction : registra
+
+    Payout "0..*" --> "1" BeneficiaryType : liquida a
+    Payout "0..*" --> "1" Store : paga a comercio
+    Payout "0..*" --> "1" Courier : paga a repartidor
+    Payout "1" --> "0..*" Transaction : deposita
+    Payout "1" *-- "0..*" PayoutLine : compone
+
+    Order "1" ..> "0..1" Invoice : emite
+    Customer "1" --> "0..*" PaymentMethod : registra

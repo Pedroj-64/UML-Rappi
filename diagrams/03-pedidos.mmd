@@ -1,0 +1,131 @@
+%% ============================================================
+%% RAPPI - DOMINIO 03: CARRITO Y PEDIDO (ORDER)
+%% El pedido es el agregado central del negocio: concentra
+%% precios, promociones, estado y trazabilidad.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class Cart {
+        +UUID id
+        +UUID customerId
+        +UUID storeId
+        +Decimal subtotal
+        +String cuponAplicado
+        +DateTime actualizadoEn
+        +agregarItem(Product, cantidad) CartItem
+        +quitarItem(cartItemId) void
+        +cambiarCantidad(cartItemId, cantidad) void
+        +calcularTotal(promociones) Decimal
+        +vaciar() void
+        +estaVacio() Boolean
+        +convertirEnPedido() Order
+    }
+
+    class CartItem {
+        +UUID id
+        +UUID productId
+        +String nombreProducto
+        +Int cantidad
+        +Decimal precioUnitario
+        +String notas
+        +subtotal() Decimal
+    }
+
+    class Order {
+        +UUID id
+        +String numero
+        +UUID customerId
+        +UUID storeId
+        +UUID courierId
+        +String direccionEntrega
+        +SaleChannel canal
+        +Decimal subtotal
+        +Decimal costoEnvio
+        +Decimal descuento
+        +Decimal propina
+        +Decimal total
+        +OrderStatus estado
+        +DateTime creadoEn
+        +DateTime programadoPara
+        +DateTime entregadoEn
+        +calcularTotal() Decimal
+        +aplicarPromocion(promocion) void
+        +aplicarPropina(monto) void
+        +avanzarEstado(estado) void
+        +cancelar(motivo) void
+        +reprogramar(fecha) void
+        +generarFactura() Invoice
+        +solicitarSoporte(categoria) SupportTicket
+    }
+
+    class OrderItem {
+        +UUID id
+        +UUID orderId
+        +UUID productId
+        +String nombre
+        +Decimal precioUnitario
+        +Int cantidad
+        +Decimal subtotal
+        +String opciones
+        +subtotal() Decimal
+    }
+
+    class OrderStatusLog {
+        +UUID id
+        +OrderStatus estado
+        +String comentario
+        +UUID actorId
+        +DateTime timestamp
+    }
+
+    class OrderStatus {
+        <<enumeration>>
+        CREADO
+        PAGO_PENDIENTE
+        CONFIRMADO
+        EN_PREPARACION
+        LISTO_PARA_RECOGER
+        EN_CAMINO
+        ENTREGADO
+        CANCELADO
+        REEMBOLSADO
+    }
+
+    class SaleChannel {
+        <<enumeration>>
+        APP_MOVIL
+        WEB
+        RAPPI_TURBO
+        API_SOCIOS
+        CORREO
+    }
+
+    %% ---- Clases externas referenciadas (definidas en otros diagramas) ----
+    class Customer
+    class Courier
+    class Store
+    class Product
+    class Payment
+    class Promotion
+    class Invoice
+    class SupportTicket
+
+    %% ================== RELACIONES ==================
+    Customer "1" --> "0..1" Cart : posee
+    Cart "1" *-- "1..*" CartItem : contiene
+    CartItem "0..*" --> "1" Product : referencia
+    Cart "1" ..> "0..1" Order : se convierte en
+
+    Order "1" *-- "1..*" OrderItem : contiene
+    Order "1" *-- "0..*" OrderStatusLog : registra
+    Order "1" --> "1" OrderStatus : tiene
+    Order "1" --> "1" SaleChannel : proviene de
+
+    Customer "1" --> "0..*" Order : realiza
+    Store "1" --> "0..*" Order : recibe
+    Courier "0..1" --> "0..*" Order : entrega
+    Order "1" --> "0..*" Payment : se liquida con
+    Order "0..*" --> "0..1" Promotion : aplica
+    Order "1" --> "0..1" Invoice : factura
+    Order "0..*" --> "0..1" SupportTicket : abre
