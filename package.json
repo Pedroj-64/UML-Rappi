@@ -1,8 +1,8 @@
 {
-  "name": "rappi-uml",
+  "name": "urbaneats-uml",
   "version": "1.0.0",
   "private": true,
-  "description": "Diagrama de clases UML (Mermaid) de la empresa Rappi con visor web autocontenido",
+  "description": "Diagrama de clases UML (Mermaid) de la empresa UrbanEats (modelo de negocio manual) con visor web autocontenido",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",

@@ -1,0 +1,56 @@
+%% ============================================================
+%% URBANEATS - SECUENCIA: CUADRE DE CAJA Y ENCUESTA
+%% Proceso 4. El repartidor rinde cuentas, el cajero calcula con
+%% la calculadora, anota en el libro y separa en sobres. Al
+%% cierre del día, atención al cliente llama a una muestra de
+%% clientes y archiva las encuestas de papel.
+%% ============================================================
+sequenceDiagram
+    autonumber
+
+    actor Rep as Repartidor
+    actor Caj as Cajero
+    participant Tar as Tarifario de Comisiones
+    participant Lib as Libro de Caja
+    participant Sob as Sobres
+    actor Ag as Agente de Calidad
+    actor Cliente
+    participant Carp as Carpeta de Encuestas
+
+    Rep->>Caj: entrega recibo firmado, comanda y efectivo
+    Caj->>Caj: verifica la firma y cuenta el dinero
+
+    alt el monto cuadra
+        Caj->>Caj: Liquidacion conforme
+    else hay faltante o sobrante
+        Caj->>Rep: pide justificar la diferencia
+        Rep-->>Caj: explicación
+        Caj->>Caj: anota la diferencia en la liquidación
+    end
+
+    Caj->>Tar: consulta comisión del restaurante y pago por envío
+    Tar-->>Caj: porcentajes vigentes
+    Caj->>Caj: calcula la distribución con la calculadora
+    Caj->>Lib: anota el asiento con folio y número de comanda
+    Caj->>Sob: separa restaurante, comisión y repartidor
+    Note over Caj,Sob: Comanda pasa a LIQUIDADA
+
+    Note over Caj,Lib: al final del día
+    Caj->>Lib: arqueo y cierre de caja
+    Caj->>Rep: entrega su sobre de pago
+
+    Ag->>Lib: revisa las comandas liquidadas del día
+    Ag->>Ag: selecciona la muestra diaria
+
+    loop por cada cliente de la muestra
+        Ag->>Cliente: llamada de seguimiento
+        alt contesta y acepta
+            Ag->>Cliente: lee las preguntas de la encuesta
+            Cliente-->>Ag: respuestas de palabra
+            Ag->>Ag: llena el formulario de papel
+        else no contesta o rechaza
+            Ag->>Ag: anota el resultado y reprograma
+        end
+    end
+
+    Ag->>Carp: archiva las encuestas del día

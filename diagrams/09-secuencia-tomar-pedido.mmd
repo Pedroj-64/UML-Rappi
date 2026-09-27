@@ -1,0 +1,49 @@
+%% ============================================================
+%% URBANEATS - SECUENCIA: TOMAR UN PEDIDO POR TELEFONO
+%% Proceso 2. Desde que el cliente llama al teléfono fijo hasta
+%% que la comanda de papel queda en la mesa de logística.
+%% En el punto de contacto físico el flujo es igual, pero lo
+%% atiende un promotor de campo en persona.
+%% ============================================================
+sequenceDiagram
+    autonumber
+
+    actor Cliente
+    actor Op as Operador Telefónico
+    participant Piz as Pizarra de Menús
+    participant Cat as Catálogo Maestro
+    participant Tal as Talonario de Comandas
+    participant Mesa as Mesa de Logística
+
+    Cliente->>Op: llama al teléfono fijo
+    Op->>Piz: revisa platos del día y agotados
+    Cliente->>Op: pide opciones de un tipo de comida
+    Op->>Cat: busca la ficha del restaurante
+    Cat-->>Op: categorías, platos y precios vigentes
+    Op-->>Cliente: lee el menú en voz alta
+
+    loop por cada plato elegido
+        Cliente->>Op: dicta plato y cantidad
+        opt plato tachado o agotado
+            Op-->>Cliente: ofrece una alternativa
+        end
+        Op->>Op: Comanda.agregarLinea() con nota al margen
+    end
+
+    Cliente->>Op: dicta dirección y referencias
+    Op->>Op: Comanda.calcularTotal()
+    Op-->>Cliente: informa el total a pagar en efectivo
+    Cliente->>Op: indica con cuánto va a pagar
+
+    alt paga con un billete mayor
+        Op->>Op: anota requiereCambio y pagaCon
+    else tiene el monto exacto
+        Op->>Op: anota pago exacto
+    end
+
+    Op->>Tal: toma la siguiente hoja
+    Tal-->>Op: numeroOrden
+    Op->>Op: Comanda.sellarHora()
+    Op-->>Cliente: confirma el número de orden
+    Op->>Mesa: entrega la comanda en mano
+    Note over Mesa: Comanda en estado RECIBIDA

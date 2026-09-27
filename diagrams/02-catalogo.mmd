@@ -1,114 +1,174 @@
 %% ============================================================
-%% RAPPI - DOMINIO 02: CATALOGO, COMERCIOS E INVENTARIO
-%% Modela tanto restaurantes/aliados como dark stores de
-%% Rappi Turbo, con menús, productos, categorías y stock.
+%% URBANEATS - DOMINIO 02: CATALOGOS FISICOS Y PIZARRA DE MENUS
+%% Proceso 1. El administrador de archivo recopila folletos,
+%% listas a mano, fotos impresas y confirmaciones verbales, y
+%% con ellas transcribe, tacha o actualiza el catálogo maestro
+%% (libro/carpeta) y la pizarra del centro de operaciones.
 %% ============================================================
 classDiagram
     direction TB
 
-    class Store {
-        +UUID id
+    class RestauranteAliado {
+        +Int numeroAliado
         +String nombre
-        +String nit
-        +String razonSocial
-        +StoreKind tipo
+        +String tipoCocina
         +String direccion
-        +GeoPoint ubicacion
         +String telefono
-        +Boolean abierta
-        +Decimal rating
-        +Int tiempoPreparacionMin
-        +Decimal comisionPorcentaje
-        +DateTime creadoEn
-        +abrir() void
-        +cerrar() void
-        +estaEnHorario() Boolean
-        +calcularDisponibilidad() Boolean
-        +actualizarRating(puntaje) void
-        +tiempoEntregaEstimado(Address) Int
+        +Time horaApertura
+        +Time horaCierre
+        +Decimal porcentajeComision
+        +Date fechaAlianza
+        +Boolean activo
+        +estaAbierto(hora) Boolean
+        +entregarMenu() FuenteMenu
     }
 
-    class StoreCategory {
-        +UUID id
+    class FuenteMenu {
+        <<abstract>>
+        +Date fechaRecepcion
+        +String entregadaPor
+        +Boolean transcrita
+        +marcarTranscrita() void
+    }
+
+    class FolletoImpreso {
+        +Int paginas
+        +Date vigenteHasta
+    }
+
+    class ListaManuscrita {
+        +String escritaPor
+        +Boolean legible
+    }
+
+    class FotografiaImpresa {
+        +String descripcion
+    }
+
+    class ConfirmacionVerbal {
+        +MedioConfirmacion medio
+        +Time hora
+        +String confirmadoPor
+        +String detalle
+    }
+
+    class CatalogoMaestro {
+        +String formato
+        +Int edicion
+        +Date ultimaRevision
+        +String ubicacionFisica
+        +buscarRestaurante(nombre) FichaRestaurante
+        +agregarFicha(ficha) void
+        +retirarFicha(restaurante) void
+        +platosDisponibles(restaurante) Plato
+    }
+
+    class FichaRestaurante {
+        +Int numeroHoja
+        +Date actualizadaEl
+        +String notasMargen
+        +leerEnVozAlta() String
+    }
+
+    class CategoriaMenu {
         +String nombre
-        +String iconoUrl
-        +Decimal comisionBase
         +Int orden
     }
 
-    class Menu {
-        +UUID id
-        +String nombre
-        +DateTime vigenteDesde
-        +DateTime vigenteHasta
-        +Boolean activo
-        +agregarProducto(Product) void
-        +quitarProducto(productId) void
-        +productosPorCategoria(cat) Product[]
-        +estaVigente() Boolean
-    }
-
-    class Product {
-        +UUID id
-        +String sku
+    class Plato {
         +String nombre
         +String descripcion
         +Decimal precio
-        +Decimal precioPromocional
-        +String imagenUrl
-        +Int tiempoPreparacionMin
+        +Int minutosPreparacion
         +Boolean disponible
-        +Boolean requiereEdad
-        +Int stock
-        +actualizarPrecio(precio) void
-        +verificarStock() Boolean
-        +aplicarDescuento(porcentaje) void
-        +precioFinal() Decimal
+        +Boolean tachado
+        +tachar() void
+        +actualizarPrecio(nuevoPrecio) void
+        +marcarAgotado() void
+        +reponer() void
     }
 
-    class ProductCategory {
-        +UUID id
-        +String nombre
-        +Int orden
-        +Boolean visible
+    class AnotacionCatalogo {
+        +Date fecha
+        +TipoCambio tipo
+        +String valorAnterior
+        +String valorNuevo
+        +String rubrica
+        +aplicar() void
     }
 
-    class InventoryItem {
-        +UUID id
-        +Int cantidad
-        +Int cantidadReservada
-        +Int puntoReposicion
-        +String ubicacionBodega
-        +DateTime ultimaRevision
-        +reservar(cantidad) Boolean
-        +liberar(cantidad) void
-        +reponer(cantidad) void
-        +necesitaReposicion() Boolean
-        +disponible() Int
+    class PizarraMenus {
+        +String ubicacion
+        +Date fechaDelDia
+        +escribir(entrada) void
+        +borrar(entrada) void
+        +borrarTodo() void
     }
 
-    class GeoPoint {
-        +Double latitud
-        +Double longitud
-        +distanciaA(GeoPoint) Double
+    class EntradaPizarra {
+        +String texto
+        +TipoEntradaPizarra tipo
+        +Time escritaA
     }
 
-    class StoreKind {
+    class MedioConfirmacion {
         <<enumeration>>
-        RESTAURANTE
-        SUPERMERCADO
-        FARMACIA
-        TIENDA
-        DARK_STORE_TURBO
+        PRESENCIAL
+        TELEFONICA
     }
+
+    class TipoCambio {
+        <<enumeration>>
+        ALTA_PLATO
+        BAJA_PLATO
+        CAMBIO_PRECIO
+        AGOTADO
+        REPUESTO
+        NUEVA_CATEGORIA
+    }
+
+    class TipoEntradaPizarra {
+        <<enumeration>>
+        PLATO_DEL_DIA
+        AGOTADO
+        CAMBIO_PRECIO
+        AVISO
+    }
+
+    %% ---- Clases externas referenciadas (definidas en otros diagramas) ----
+    class AdministradorArchivo
+    class ContactoRestaurante
+    class OperadorTelefonico
+    class PromotorCampo
 
     %% ================== RELACIONES ==================
-    Store "0..*" --> "1" StoreCategory : pertenece a
-    Store "1" *-- "1..*" Menu : publica
-    Store "1" *-- "0..*" InventoryItem : almacena
-    Store "1" --> "1" GeoPoint : ubicada en
-    Store "1" --> "1" StoreKind : es de tipo
+    FuenteMenu <|-- FolletoImpreso
+    FuenteMenu <|-- ListaManuscrita
+    FuenteMenu <|-- FotografiaImpresa
+    FuenteMenu <|-- ConfirmacionVerbal
 
-    Menu "1" o-- "0..*" Product : agrupa
-    Product "0..*" --> "1" ProductCategory : clasificado en
-    InventoryItem "0..*" --> "1" Product : controla stock de
+    RestauranteAliado "1" --> "0..*" FuenteMenu : entrega
+    ContactoRestaurante "1" --> "0..*" ConfirmacionVerbal : da
+    AdministradorArchivo "1" --> "0..*" FuenteMenu : recopila
+
+    CatalogoMaestro "1" *-- "0..*" FichaRestaurante : organiza
+    FichaRestaurante "0..1" --> "1" RestauranteAliado : describe a
+    FichaRestaurante "1" *-- "1..*" CategoriaMenu : agrupa
+    CategoriaMenu "1" *-- "0..*" Plato : incluye
+
+    AdministradorArchivo "1" --> "0..*" AnotacionCatalogo : registra
+    FichaRestaurante "1" *-- "0..*" AnotacionCatalogo : historial
+    AnotacionCatalogo "0..*" --> "1" FuenteMenu : se basa en
+    AnotacionCatalogo "0..*" --> "0..1" Plato : afecta a
+
+    AdministradorArchivo "1..*" --> "1" PizarraMenus : actualiza
+    PizarraMenus "1" *-- "0..*" EntradaPizarra : muestra
+    EntradaPizarra "0..*" --> "0..1" Plato : se refiere a
+
+    OperadorTelefonico ..> CatalogoMaestro : consulta
+    OperadorTelefonico ..> PizarraMenus : consulta
+    PromotorCampo ..> CatalogoMaestro : consulta
+
+    ConfirmacionVerbal "0..*" --> "1" MedioConfirmacion : por
+    AnotacionCatalogo "0..*" --> "1" TipoCambio : es de tipo
+    EntradaPizarra "0..*" --> "1" TipoEntradaPizarra : es de tipo

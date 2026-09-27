@@ -1,0 +1,34 @@
+%% ============================================================
+%% URBANEATS - DIAGRAMA DE ESTADOS: CICLO DE VIDA DEL ENVIO
+%% Refleja el enum EstadoEnvio de diagrams/04-despacho.mmd.
+%% EN_RUTA es un estado compuesto: el repartidor se orienta con
+%% el mapa de papel, llega a la puerta y cobra en efectivo.
+%% El envío solo termina cuando el repartidor vuelve a la base.
+%% ============================================================
+stateDiagram-v2
+    direction TB
+
+    [*] --> PENDIENTE_ASIGNACION : comanda llega a la mesa de logistica
+
+    PENDIENTE_ASIGNACION --> ASIGNADO : coordinador entrega direccion y mapa en persona
+
+    ASIGNADO --> EN_RESTAURANTE : repartidor llega a recoger
+
+    EN_RESTAURANTE --> EN_RUTA : recibe alimentos y copia original
+
+    state EN_RUTA {
+        [*] --> ORIENTANDOSE : sigue la ruta trazada a boligrafo
+        ORIENTANDOSE --> EN_PUERTA : ubica la direccion
+        ORIENTANDOSE --> ORIENTANDOSE : consulta el callejero
+        EN_PUERTA --> COBRANDO : cliente atiende
+        COBRANDO --> ESPERANDO_FIRMA : entrega cambio si aplica
+        ESPERANDO_FIRMA --> [*]
+    }
+
+    EN_RUTA --> ENTREGADO : recibo firmado
+    EN_RUTA --> NO_ENTREGADO : cliente ausente o sin dinero
+
+    ENTREGADO --> RENDIDO : regresa a la base con recibo y dinero
+    NO_ENTREGADO --> RENDIDO : regresa a la base con comida y comanda
+
+    RENDIDO --> [*] : Liquidacion registrada por el cajero

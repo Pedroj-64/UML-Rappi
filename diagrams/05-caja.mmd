@@ -1,0 +1,121 @@
+%% ============================================================
+%% URBANEATS - DOMINIO 05: CUADRE DE CAJA
+%% Proceso 4 (parte contable). El repartidor rinde el recibo
+%% firmado y el efectivo; el cajero verifica, calcula comisiones
+%% con la calculadora según el tarifario, anota en el libro de
+%% caja y separa el dinero en sobres. Al final del día, arqueo.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class Liquidacion {
+        +Int numero
+        +Date fecha
+        +Time horaRendicion
+        +Decimal montoEsperado
+        +Decimal montoEntregado
+        +Decimal diferencia
+        +Boolean conforme
+        +verificarRecibo(recibo) Boolean
+        +contarEfectivo() Decimal
+        +calcularDiferencia() Decimal
+    }
+
+    class TarifarioComisiones {
+        +Decimal porcentajeComisionBase
+        +Decimal pagoRepartidorPorEnvio
+        +Decimal costoEnvioCliente
+        +Date vigenteDesde
+        +comisionPara(restaurante) Decimal
+    }
+
+    class DistribucionIngreso {
+        +Decimal montoRestaurante
+        +Decimal comisionUrbanEats
+        +Decimal pagoRepartidor
+        +calcular(comanda, tarifario) void
+        +cuadra() Boolean
+    }
+
+    class LibroCaja {
+        +Int tomo
+        +Int anio
+        +Int folioActual
+        +Decimal saldo
+        +anotar(asiento) void
+        +totalDelDia(fecha) Decimal
+        +pasarFolio() void
+    }
+
+    class AsientoContable {
+        +Int numeroAsiento
+        +Int folio
+        +Date fecha
+        +String concepto
+        +String referenciaComanda
+        +Decimal debe
+        +Decimal haber
+        +String rubricaCajero
+    }
+
+    class Sobre {
+        +TipoSobre tipo
+        +String rotulo
+        +Date fecha
+        +Decimal monto
+        +Boolean cerrado
+        +Boolean entregado
+        +introducir(monto, referencia) void
+        +cerrar() void
+        +entregarA(nombre) void
+    }
+
+    class CierreCaja {
+        +Date fecha
+        +Int pedidosLiquidados
+        +Decimal totalRecaudado
+        +Decimal totalRestaurantes
+        +Decimal totalComisiones
+        +Decimal totalRepartidores
+        +Decimal faltanteSobrante
+        +realizarArqueo() Decimal
+        +firmar(cajero) void
+    }
+
+    class TipoSobre {
+        <<enumeration>>
+        PAGO_RESTAURANTE
+        COMISION_URBANEATS
+        PAGO_REPARTIDOR
+    }
+
+    %% ---- Clases externas referenciadas (definidas en otros diagramas) ----
+    class Repartidor
+    class Cajero
+    class Envio
+    class ReciboEntrega
+    class Comanda
+    class RestauranteAliado
+
+    %% ================== RELACIONES ==================
+    Repartidor "1" --> "0..*" Liquidacion : rinde
+    Cajero "1" --> "0..*" Liquidacion : recibe
+    Liquidacion "0..1" --> "1" Envio : cierra
+    Liquidacion "1" --> "1" ReciboEntrega : verifica
+    Liquidacion "0..*" --> "1" Comanda : cobra
+
+    Liquidacion "1" *-- "1" DistribucionIngreso : calcula
+    DistribucionIngreso ..> TarifarioComisiones : aplica
+    DistribucionIngreso "0..*" --> "1..3" Sobre : se deposita en
+
+    Liquidacion "1" --> "1..*" AsientoContable : genera
+    LibroCaja "1" *-- "0..*" AsientoContable : contiene
+
+    Cajero "1" --> "0..*" CierreCaja : realiza
+    CierreCaja "1" --> "0..*" Liquidacion : totaliza
+    CierreCaja "1" o-- "0..*" Sobre : consolida
+    CierreCaja "0..*" --> "1" LibroCaja : se anota en
+
+    Sobre "0..*" --> "0..1" RestauranteAliado : destinado a
+    Sobre "0..*" --> "0..1" Repartidor : destinado a
+    Sobre "0..*" --> "1" TipoSobre : es

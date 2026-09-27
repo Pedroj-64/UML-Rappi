@@ -1,131 +1,135 @@
 %% ============================================================
-%% RAPPI - DOMINIO 03: CARRITO Y PEDIDO (ORDER)
-%% El pedido es el agregado central del negocio: concentra
-%% precios, promociones, estado y trazabilidad.
+%% URBANEATS - DOMINIO 03: TOMA Y REGISTRO MANUAL DE PEDIDOS
+%% Proceso 2. El cliente llama al teléfono fijo o se acerca a un
+%% punto de contacto. El operador lee el menú, escribe la comanda
+%% a mano, le pone número de talonario y sello de hora, confirma
+%% el pago en efectivo y la entrega en mano a la mesa de logística.
 %% ============================================================
 classDiagram
     direction TB
 
-    class Cart {
-        +UUID id
-        +UUID customerId
-        +UUID storeId
-        +Decimal subtotal
-        +String cuponAplicado
-        +DateTime actualizadoEn
-        +agregarItem(Product, cantidad) CartItem
-        +quitarItem(cartItemId) void
-        +cambiarCantidad(cartItemId, cantidad) void
-        +calcularTotal(promociones) Decimal
-        +vaciar() void
-        +estaVacio() Boolean
-        +convertirEnPedido() Order
+    class ContactoCliente {
+        +Int numero
+        +CanalContacto canal
+        +Date fecha
+        +Time horaInicio
+        +Time horaFin
+        +Boolean terminoEnPedido
+        +registrarConsulta(nota) void
     }
 
-    class CartItem {
-        +UUID id
-        +UUID productId
-        +String nombreProducto
-        +Int cantidad
-        +Decimal precioUnitario
-        +String notas
-        +subtotal() Decimal
-    }
-
-    class Order {
-        +UUID id
-        +String numero
-        +UUID customerId
-        +UUID storeId
-        +UUID courierId
-        +String direccionEntrega
-        +SaleChannel canal
+    class Comanda {
+        +Int numeroOrden
+        +Date fecha
+        +Time horaRecepcion
+        +Boolean sellada
+        +String telefonoContacto
+        +String indicacionesEspeciales
         +Decimal subtotal
         +Decimal costoEnvio
-        +Decimal descuento
-        +Decimal propina
         +Decimal total
-        +OrderStatus estado
-        +DateTime creadoEn
-        +DateTime programadoPara
-        +DateTime entregadoEn
+        +EstadoComanda estado
+        +agregarLinea(plato, cantidad, nota) LineaComanda
         +calcularTotal() Decimal
-        +aplicarPromocion(promocion) void
-        +aplicarPropina(monto) void
-        +avanzarEstado(estado) void
-        +cancelar(motivo) void
-        +reprogramar(fecha) void
-        +generarFactura() Invoice
-        +solicitarSoporte(categoria) SupportTicket
+        +sellarHora(hora) void
+        +sacarCopia(tipo) CopiaComanda
+        +cambiarEstado(estado) void
+        +anular(motivo) void
     }
 
-    class OrderItem {
-        +UUID id
-        +UUID orderId
-        +UUID productId
-        +String nombre
-        +Decimal precioUnitario
+    class LineaComanda {
         +Int cantidad
-        +Decimal subtotal
-        +String opciones
+        +String descripcionPlato
+        +Decimal precioUnitario
+        +String notaAlMargen
         +subtotal() Decimal
     }
 
-    class OrderStatusLog {
-        +UUID id
-        +OrderStatus estado
-        +String comentario
-        +UUID actorId
-        +DateTime timestamp
+    class PagoContraEntrega {
+        +Decimal montoACobrar
+        +Decimal pagaCon
+        +Boolean requiereCambio
+        +Decimal montoCobrado
+        +calcularCambio() Decimal
+        +registrarCobro(monto) void
     }
 
-    class OrderStatus {
+    class CopiaComanda {
+        +TipoCopia tipo
+        +String destinatario
+        +Time entregadaA
+    }
+
+    class TalonarioComandas {
+        +Int serie
+        +Int numeroInicial
+        +Int numeroFinal
+        +Int ultimoUsado
+        +siguienteNumero() Int
+        +estaAgotado() Boolean
+    }
+
+    class MesaLogistica {
+        +String ubicacion
+        +Int comandasPendientes
+        +recibir(comanda) void
+        +tomarSiguiente() Comanda
+    }
+
+    class CanalContacto {
         <<enumeration>>
-        CREADO
-        PAGO_PENDIENTE
-        CONFIRMADO
+        TELEFONO_FIJO
+        PUNTO_FISICO
+    }
+
+    class TipoCopia {
+        <<enumeration>>
+        ORIGINAL
+        COPIA_RESTAURANTE
+        COPIA_ARCHIVO
+    }
+
+    class EstadoComanda {
+        <<enumeration>>
+        RECIBIDA
+        AVISADA_A_COCINA
         EN_PREPARACION
-        LISTO_PARA_RECOGER
-        EN_CAMINO
-        ENTREGADO
-        CANCELADO
-        REEMBOLSADO
-    }
-
-    class SaleChannel {
-        <<enumeration>>
-        APP_MOVIL
-        WEB
-        RAPPI_TURBO
-        API_SOCIOS
-        CORREO
+        LISTA_PARA_RECOGER
+        EN_REPARTO
+        ENTREGADA
+        NO_ENTREGADA
+        LIQUIDADA
+        ANULADA
     }
 
     %% ---- Clases externas referenciadas (definidas en otros diagramas) ----
-    class Customer
-    class Courier
-    class Store
-    class Product
-    class Payment
-    class Promotion
-    class Invoice
-    class SupportTicket
+    class Cliente
+    class Direccion
+    class OperadorTelefonico
+    class PromotorCampo
+    class PuntoContacto
+    class CatalogoMaestro
+    class RestauranteAliado
+    class Plato
 
     %% ================== RELACIONES ==================
-    Customer "1" --> "0..1" Cart : posee
-    Cart "1" *-- "1..*" CartItem : contiene
-    CartItem "0..*" --> "1" Product : referencia
-    Cart "1" ..> "0..1" Order : se convierte en
+    Cliente "1" --> "0..*" ContactoCliente : inicia
+    OperadorTelefonico "0..1" --> "0..*" ContactoCliente : atiende por telefono
+    PromotorCampo "0..1" --> "0..*" ContactoCliente : atiende en persona
+    ContactoCliente "0..*" --> "0..1" PuntoContacto : ocurre en
+    ContactoCliente ..> CatalogoMaestro : se lee el menu de
+    ContactoCliente "1" --> "0..1" Comanda : origina
 
-    Order "1" *-- "1..*" OrderItem : contiene
-    Order "1" *-- "0..*" OrderStatusLog : registra
-    Order "1" --> "1" OrderStatus : tiene
-    Order "1" --> "1" SaleChannel : proviene de
+    Comanda "1" *-- "1..*" LineaComanda : contiene
+    LineaComanda "0..*" --> "1" Plato : corresponde a
+    Comanda "0..*" --> "1" RestauranteAliado : se pide a
+    Comanda "0..*" --> "1" Direccion : se entrega en
+    Comanda "1" *-- "1" PagoContraEntrega : se cobra con
+    Comanda "1" *-- "1..3" CopiaComanda : se copia en
 
-    Customer "1" --> "0..*" Order : realiza
-    Store "1" --> "0..*" Order : recibe
-    Courier "0..1" --> "0..*" Order : entrega
-    Order "1" --> "0..*" Payment : se liquida con
-    Order "0..*" --> "0..1" Promotion : aplica
-    Order "1" --> "0..1" Invoice : factura
-    Order "0..*" --> "0..1" SupportTicket : abre
+    TalonarioComandas "1" --> "0..*" Comanda : numera
+    MesaLogistica "1" o-- "0..*" Comanda : recibe en mano
+
+    ContactoCliente "0..*" --> "1" CanalContacto : llega por
+    CopiaComanda "0..*" --> "1" TipoCopia : es
+    Comanda "0..*" --> "1" EstadoComanda : esta en

@@ -1,0 +1,51 @@
+%% ============================================================
+%% URBANEATS - SECUENCIA: PREPARACION, DESPACHO Y ENTREGA
+%% Proceso 3. Aviso a la cocina (teléfono o mensajero a pie),
+%% trazado de ruta en el callejero, asignación en persona en el
+%% punto de encuentro, entrega en la puerta y regreso a la base.
+%% ============================================================
+sequenceDiagram
+    autonumber
+
+    participant Mesa as Mesa de Logística
+    actor Coord as Coordinador
+    actor Mens as Mensajero
+    participant Rest as Restaurante Aliado
+    participant PE as Punto de Encuentro
+    actor Rep as Repartidor
+    actor Cliente
+
+    Coord->>Mesa: toma la siguiente comanda
+    Coord->>Coord: saca copia para el restaurante
+
+    alt el restaurante atiende el teléfono
+        Coord->>Rest: llama y dicta la comanda
+        Rest-->>Coord: confirma y da minutos de preparación
+    else sin línea o pedido muy largo
+        Coord->>Mens: entrega copia de la comanda
+        Mens->>Rest: la lleva a pie
+        Rest-->>Mens: confirma y da minutos de preparación
+        Mens-->>Coord: vuelve y lo comunica de palabra
+    end
+    Note over Coord: Comanda pasa a EN_PREPARACION
+
+    Coord->>Coord: traza la ruta a bolígrafo sobre el callejero
+    Coord->>PE: llama al siguiente repartidor en fila
+    PE-->>Coord: repartidor disponible
+    Coord->>Rep: entrega comanda original, dirección y mapa
+    Note over Rep: Envio en estado ASIGNADO
+
+    Rep->>Rest: se presenta a recoger
+    Rest-->>Rep: entrega los alimentos
+    Rep->>Cliente: llega a la puerta
+
+    alt el cliente recibe y paga
+        Cliente->>Rep: paga en efectivo
+        Rep-->>Cliente: entrega alimentos y cambio
+        Cliente->>Rep: firma el recibo de entrega
+    else cliente ausente o sin dinero
+        Rep->>Rep: anota el motivo en la comanda
+    end
+
+    Rep->>Coord: regresa a la base física
+    Note over Rep,Coord: continúa en Cuadre de caja

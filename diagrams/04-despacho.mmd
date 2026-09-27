@@ -1,0 +1,119 @@
+%% ============================================================
+%% URBANEATS - DOMINIO 04: PREPARACION Y DESPACHO LOGISTICO
+%% Proceso 3. El coordinador avisa a la cocina (llamada o
+%% mensajero a pie con copia de la comanda), traza la ruta con
+%% bolígrafo sobre el callejero y asigna en persona el envío a un
+%% repartidor del punto de encuentro. Termina con el recibo
+%% firmado por el cliente y el regreso del repartidor a la base.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class AvisoCocina {
+        +MedioAviso medio
+        +Time horaAviso
+        +String recibidoPor
+        +Int minutosPreparacion
+        +Boolean confirmado
+        +confirmarRecepcion(nombre) void
+        +horaListaEstimada() Time
+    }
+
+    class Envio {
+        +Int numeroEnvio
+        +Time horaAsignacion
+        +Time horaRecogida
+        +Time horaEntrega
+        +Time horaRegresoBase
+        +EstadoEnvio estado
+        +String motivoNoEntrega
+        +asignar(repartidor, mapa) void
+        +registrarRecogida(hora) void
+        +registrarEntrega(recibo) void
+        +registrarNoEntrega(motivo) void
+        +registrarRegreso(hora) void
+    }
+
+    class PuntoEncuentro {
+        +String ubicacion
+        +Int repartidoresEnEspera
+        +registrarLlegada(repartidor) void
+        +siguienteEnFila() Repartidor
+    }
+
+    class Callejero {
+        +String edicion
+        +Int anio
+        +buscarCalle(nombre) String
+        +copiarSector(sector) MapaRuta
+    }
+
+    class MapaRuta {
+        +String sector
+        +String puntoRecogida
+        +String puntoDestino
+        +String trazadoBoligrafo
+        +Decimal distanciaAproxKm
+        +Int minutosEstimados
+    }
+
+    class ReciboEntrega {
+        +Int numeroRecibo
+        +Time horaEntrega
+        +String nombreQuienRecibe
+        +Decimal montoCobrado
+        +Decimal cambioEntregado
+        +Boolean firmado
+        +String observaciones
+        +firmar(nombre) void
+    }
+
+    class MedioAviso {
+        <<enumeration>>
+        LLAMADA_TELEFONICA
+        MENSAJERO_A_PIE
+    }
+
+    class EstadoEnvio {
+        <<enumeration>>
+        PENDIENTE_ASIGNACION
+        ASIGNADO
+        EN_RESTAURANTE
+        EN_RUTA
+        ENTREGADO
+        NO_ENTREGADO
+        RENDIDO
+    }
+
+    %% ---- Clases externas referenciadas (definidas en otros diagramas) ----
+    class Coordinador
+    class Mensajero
+    class Repartidor
+    class Cliente
+    class Comanda
+    class CopiaComanda
+    class RestauranteAliado
+    class ContactoRestaurante
+    class CentroOperaciones
+
+    %% ================== RELACIONES ==================
+    Coordinador "1" --> "0..*" AvisoCocina : realiza
+    AvisoCocina "0..*" --> "1" Comanda : comunica
+    AvisoCocina "0..*" --> "1" RestauranteAliado : dirigido a
+    ContactoRestaurante "1" --> "0..*" AvisoCocina : recibe
+    AvisoCocina "0..*" --> "0..1" Mensajero : llevado por
+    AvisoCocina "0..1" --> "0..1" CopiaComanda : adjunta
+
+    Coordinador "1" --> "0..*" Envio : asigna en persona
+    Comanda "1" --> "0..1" Envio : se despacha en
+    Envio "0..*" --> "1" Repartidor : realizado por
+    Envio "1" *-- "1" MapaRuta : lleva
+    Callejero "1" ..> "0..*" MapaRuta : sirve de base a
+    Envio "1" --> "0..1" ReciboEntrega : se acredita con
+    ReciboEntrega "0..*" --> "1" Cliente : firmado por
+
+    CentroOperaciones "1" *-- "1" PuntoEncuentro : dispone de
+    PuntoEncuentro "1" o-- "0..*" Repartidor : en espera
+
+    AvisoCocina "0..*" --> "1" MedioAviso : por
+    Envio "0..*" --> "1" EstadoEnvio : esta en

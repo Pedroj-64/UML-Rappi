@@ -1,0 +1,31 @@
+%% ============================================================
+%% URBANEATS - DIAGRAMA DE ESTADOS: CICLO DE VIDA DE LA COMANDA
+%% Refleja exactamente el enum EstadoComanda definido en
+%% diagrams/03-pedidos.mmd. Va desde que el operador escribe la
+%% comanda hasta que el cajero la liquida en el libro de caja.
+%% ============================================================
+stateDiagram-v2
+    direction LR
+
+    [*] --> RECIBIDA : operador escribe, numera y sella la hora
+
+    RECIBIDA --> AVISADA_A_COCINA : Coordinador.avisarCocina()
+    RECIBIDA --> ANULADA : cliente desiste o restaurante cerrado
+
+    AVISADA_A_COCINA --> EN_PREPARACION : restaurante confirma de palabra
+    AVISADA_A_COCINA --> ANULADA : plato agotado sin reemplazo
+
+    EN_PREPARACION --> LISTA_PARA_RECOGER : tiempo de preparacion cumplido
+
+    LISTA_PARA_RECOGER --> EN_REPARTO : repartidor recoge con la copia original
+
+    EN_REPARTO --> ENTREGADA : cliente paga y firma el recibo
+    EN_REPARTO --> NO_ENTREGADA : cliente ausente, sin dinero o direccion errada
+
+    ENTREGADA --> LIQUIDADA : cajero cuadra y separa en sobres
+
+    NO_ENTREGADA --> EN_REPARTO : se reintenta con el cliente
+    NO_ENTREGADA --> ANULADA : se devuelve la comanda a la base
+
+    LIQUIDADA --> [*] : archivada con su asiento contable
+    ANULADA --> [*]

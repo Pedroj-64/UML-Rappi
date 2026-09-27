@@ -27,80 +27,74 @@ const META = {
   '00-general.mmd': {
     id: 'general',
     seccion: SECCION_CLASES,
-    titulo: 'Vista general de la empresa',
-    descripcion: 'Todo Rappi en un lienzo: actores, comercios, pedido, reparto, pagos, crecimiento y postventa.'
+    titulo: 'Vista general de UrbanEats',
+    descripcion: 'Los 4 procesos manuales en un lienzo: catálogo en papel, comanda, despacho, caja y encuestas.'
   },
-  '01-usuarios.mmd': {
-    id: 'usuarios',
+  '01-personal.mmd': {
+    id: 'personal',
     seccion: SECCION_CLASES,
-    titulo: 'Usuarios, cuentas y acceso',
-    descripcion: 'Jerarquía de actores (cliente, rappitendero, comercio, colaborador), identidad, direcciones y dispositivos.'
+    titulo: 'Personas, roles y sedes',
+    descripcion: 'Cliente, contacto del restaurante y todo el personal del centro de operaciones y puntos de contacto.'
   },
   '02-catalogo.mmd': {
     id: 'catalogo',
     seccion: SECCION_CLASES,
-    titulo: 'Catálogo, comercios e inventario',
-    descripcion: 'Tiendas aliadas, dark stores de Rappi Turbo, menús, productos, categorías y control de stock.'
+    titulo: 'Catálogo físico y pizarra de menús',
+    descripcion: 'Proceso 1: folletos, listas a mano y confirmaciones verbales que alimentan el catálogo maestro.'
   },
   '03-pedidos.mmd': {
     id: 'pedidos',
     seccion: SECCION_CLASES,
-    titulo: 'Carrito y pedido (Order)',
-    descripcion: 'Agregado central del negocio: ítems, precios, promociones, ciclo de estados y trazabilidad.'
+    titulo: 'Toma y registro manual de pedidos',
+    descripcion: 'Proceso 2: llamada o visita, comanda de papel numerada y sellada, pago contra entrega y copias.'
   },
-  '04-logistica.mmd': {
-    id: 'logistica',
+  '04-despacho.mmd': {
+    id: 'despacho',
     seccion: SECCION_CLASES,
-    titulo: 'Logística y reparto',
-    descripcion: 'Asignación de órdenes, zonas, vehículos, rutas, turnos y seguimiento en tiempo real.'
+    titulo: 'Preparación y despacho logístico',
+    descripcion: 'Proceso 3: aviso a cocina, mapa trazado a bolígrafo, asignación en persona y recibo firmado.'
   },
-  '05-pagos.mmd': {
-    id: 'pagos',
+  '05-caja.mmd': {
+    id: 'caja',
     seccion: SECCION_CLASES,
-    titulo: 'Pagos, RappiPay y liquidaciones',
-    descripcion: 'Medios de pago, motor transaccional, billetera, tarjeta, reembolsos, payouts y facturación.'
+    titulo: 'Cuadre de caja',
+    descripcion: 'Proceso 4: rendición del repartidor, comisiones, libro de caja, sobres y arqueo diario.'
   },
-  '06-promociones.mmd': {
-    id: 'promociones',
+  '06-calidad.mmd': {
+    id: 'calidad',
     seccion: SECCION_CLASES,
-    titulo: 'Promociones, Rappi Prime y lealtad',
-    descripcion: 'Descuentos, cupones, campañas de marketing, suscripción Prime y programa de puntos.'
+    titulo: 'Encuestas de satisfacción y viabilidad',
+    descripcion: 'Proceso 4: muestra diaria, llamadas de seguimiento, encuestas archivadas e informes de análisis.'
   },
-  '07-soporte.mmd': {
-    id: 'soporte',
-    seccion: SECCION_CLASES,
-    titulo: 'Soporte, reseñas y notificaciones',
-    descripcion: 'Postventa: tickets con SLA, chat, calificaciones, incidentes operativos y motor de notificaciones.'
-  },
-  '08-estados-pedido.mmd': {
-    id: 'estado-pedido',
+  '07-estados-comanda.mmd': {
+    id: 'estado-comanda',
     seccion: SECCION_ESTADOS,
-    titulo: 'Ciclo de vida del pedido',
-    descripcion: 'Desde CREADO hasta ENTREGADO, incluyendo cancelación y reembolso. Refleja el enum OrderStatus.'
+    titulo: 'Ciclo de vida de la comanda',
+    descripcion: 'De RECIBIDA a LIQUIDADA, con no entrega, reintento y anulación. Refleja el enum EstadoComanda.'
   },
-  '09-estados-entrega.mmd': {
-    id: 'estado-entrega',
+  '08-estados-envio.mmd': {
+    id: 'estado-envio',
     seccion: SECCION_ESTADOS,
-    titulo: 'Ciclo de vida de la entrega',
-    descripcion: 'Búsqueda de repartidor (estado compuesto), recogida, tránsito, fallo con reintentos y cancelación.'
+    titulo: 'Ciclo de vida del envío',
+    descripcion: 'Asignación en persona, ruta con mapa de papel (estado compuesto), entrega y rendición en la base.'
   },
-  '10-secuencia-crear-pedido.mmd': {
-    id: 'seq-crear-pedido',
+  '09-secuencia-tomar-pedido.mmd': {
+    id: 'seq-tomar-pedido',
     seccion: SECCION_SECUENCIA,
-    titulo: 'Crear un pedido',
-    descripcion: 'Del carrito confirmado a la tienda que acepta, con validación de stock y cálculo de total.'
+    titulo: 'Tomar un pedido por teléfono',
+    descripcion: 'Lectura del menú, dictado, total en efectivo, número de talonario, sello de hora y entrega a logística.'
   },
-  '11-secuencia-asignar-repartidor.mmd': {
-    id: 'seq-asignar-repartidor',
+  '10-secuencia-despacho.mmd': {
+    id: 'seq-despacho',
     seccion: SECCION_SECUENCIA,
-    titulo: 'Asignar un repartidor',
-    descripcion: 'Motor de matching, oferta al rappitendero con reintentos y tarifa por zona.'
+    titulo: 'Despachar y entregar',
+    descripcion: 'Aviso a cocina por teléfono o mensajero, ruta trazada, repartidor en fila, cobro y firma.'
   },
-  '12-secuencia-procesar-pago.mmd': {
-    id: 'seq-procesar-pago',
+  '11-secuencia-cuadre-caja.mmd': {
+    id: 'seq-cuadre-caja',
     seccion: SECCION_SECUENCIA,
-    titulo: 'Procesar un pago',
-    descripcion: 'Autorización según medio de pago, registro contable y reembolso posterior.'
+    titulo: 'Cuadre de caja y encuesta',
+    descripcion: 'Rendición, cálculo de comisiones, libro de caja, sobres, cierre del día y llamadas de satisfacción.'
   }
 };
 

@@ -1,151 +1,190 @@
 %% ============================================================
-%% RAPPI - DIAGRAMA DE CLASES: VISTA GENERAL (MACRO)
-%% Muestra las clases núcleo de todos los dominios y cómo se
-%% conectan entre sí. El detalle de atributos y métodos vive en
-%% los diagramas por dominio (01..07).
+%% URBANEATS - DIAGRAMA DE CLASES: VISTA GENERAL (MACRO)
+%% Modelo de negocio 100% manual: catálogo en papel, pedidos por
+%% teléfono, despacho con mapa impreso y cobro en efectivo.
+%% Muestra las clases núcleo de los 4 procesos y cómo se enlazan.
+%% El detalle de atributos y métodos vive en los diagramas 01..06.
 %% ============================================================
 classDiagram
     direction LR
 
-    %% ---------- ACTORES / USUARIOS ----------
-    class User {
+    %% ---------- PERSONAS ----------
+    class Persona {
         <<abstract>>
-        +UUID id
         +String nombreCompleto
-        +String email
         +String telefono
-        +AccountStatus estado
     }
 
-    class Customer {
-        +String telefono
-        +crearPedido()
-        +calificarServicio()
+    class Cliente {
+        +Int numeroCliente
+        +dictarPedido()
+        +pagarEnEfectivo(monto)
+        +firmarRecibo(recibo)
     }
 
-    class Courier {
-        +String placa
-        +Boolean disponible
-        +aceptarEntrega()
-        +actualizarUbicacion()
+    class Empleado {
+        <<abstract>>
+        +String codigoEmpleado
+        +Turno turno
     }
 
-    class MerchantUser {
-        +String cargo
-        +gestionarTienda()
-        +publicarProducto()
+    class AdministradorArchivo {
+        +actualizarCatalogo(cambio)
     }
 
-    class Admin {
-        +String area
-        +verDashboard()
-        +resolverIncidencia()
+    class OperadorTelefonico {
+        +leerMenu(ficha)
+        +tomarPedido(contacto) Comanda
     }
 
-    class Address {
-        +String etiqueta
-        +String direccion
-        +GeoPoint ubicacion
+    class Coordinador {
+        +avisarCocina(comanda) AvisoCocina
+        +asignarRepartidor(envio, repartidor)
     }
 
-    %% ---------- CATALOGO ----------
-    class Store {
-        +UUID id
+    class Repartidor {
+        +MedioTransporte transporte
+        +entregarPedido()
+        +rendirCuentas() Liquidacion
+    }
+
+    class Cajero {
+        +calcularComisiones(liquidacion)
+        +separarEnSobres()
+    }
+
+    class AgenteCalidad {
+        +llamarCliente(cliente)
+        +llenarEncuesta() EncuestaSatisfaccion
+    }
+
+    class Direccion {
+        +String calle
+        +String barrio
+        +String referencias
+    }
+
+    %% ---------- PROCESO 1: CATALOGO FISICO ----------
+    class RestauranteAliado {
         +String nombre
-        +Boolean abierta
-        +Decimal rating
+        +String telefono
+        +Decimal porcentajeComision
     }
 
-    class Product {
-        +UUID id
+    class CatalogoMaestro {
+        +Int edicion
+        +String ubicacionFisica
+        +buscarRestaurante(nombre)
+    }
+
+    class Plato {
         +String nombre
         +Decimal precio
         +Boolean disponible
+        +tachar()
     }
 
-    %% ---------- PEDIDO ----------
-    class Cart {
-        +Decimal subtotal
-        +agregarItem()
+    class PizarraMenus {
+        +Date fechaDelDia
+        +escribir(entrada)
     }
 
-    class Order {
-        +UUID id
+    %% ---------- PROCESO 2: TOMA DE PEDIDOS ----------
+    class Comanda {
+        +Int numeroOrden
+        +Time horaRecepcion
         +Decimal total
-        +OrderStatus estado
-        +cancelar()
+        +Boolean requiereCambio
+        +EstadoComanda estado
     }
 
-    class OrderItem {
+    class LineaComanda {
         +Int cantidad
-        +Decimal subtotal
+        +Decimal precioUnitario
+        +String notaAlMargen
     }
 
-    %% ---------- LOGISTICA ----------
-    class Delivery {
-        +String estado
-        +Int etaMinutos
-        +completar()
+    %% ---------- PROCESO 3: DESPACHO ----------
+    class AvisoCocina {
+        +MedioAviso medio
+        +Int minutosPreparacion
     }
 
-    class Zone {
-        +String nombre
-        +Decimal tarifaBase
+    class Envio {
+        +Int numeroEnvio
+        +EstadoEnvio estado
     }
 
-    %% ---------- PAGOS ----------
-    class Payment {
+    class MapaRuta {
+        +String trazadoBoligrafo
+    }
+
+    class ReciboEntrega {
+        +String nombreQuienRecibe
+        +Boolean firmado
+    }
+
+    %% ---------- PROCESO 4: CAJA Y CALIDAD ----------
+    class Liquidacion {
+        +Decimal montoEntregado
+        +Decimal diferencia
+    }
+
+    class LibroCaja {
+        +Int folioActual
+        +anotar(asiento)
+    }
+
+    class Sobre {
+        +TipoSobre tipo
         +Decimal monto
-        +String estado
     }
 
-    class PaymentMethod {
-        <<abstract>>
-        +cobrar()
-        +reembolsar()
+    class EncuestaSatisfaccion {
+        +Int calificacionGeneral
+        +String comentarios
     }
-
-    class Card
-    class Wallet
-
-    %% ---------- CRECIMIENTO ----------
-    class Promotion
-    class Subscription
-
-    %% ---------- POSTVENTA ----------
-    class SupportTicket
-    class Review
-    class Notification
 
     %% ================== RELACIONES ==================
-    User <|-- Customer
-    User <|-- Courier
-    User <|-- MerchantUser
-    User <|-- Admin
+    Persona <|-- Cliente
+    Persona <|-- Empleado
+    Empleado <|-- AdministradorArchivo
+    Empleado <|-- OperadorTelefonico
+    Empleado <|-- Coordinador
+    Empleado <|-- Repartidor
+    Empleado <|-- Cajero
+    Empleado <|-- AgenteCalidad
 
-    User "1" --> "0..*" Address : registra
-    Customer "1" --> "0..1" Cart : posee
-    Customer "1" --> "0..*" Order : realiza
-    Customer "1" --> "0..*" Review : escribe
-    Customer "0..1" --> "0..1" Subscription : contrata
+    Cliente "1" --> "1..*" Direccion : recibe en
 
-    MerchantUser "1" --> "0..*" Store : administra
-    Store "1" o-- "0..*" Product : ofrece
-    Store "1" --> "0..*" Order : recibe
+    AdministradorArchivo "1" --> "1" CatalogoMaestro : mantiene
+    AdministradorArchivo "1" --> "1" PizarraMenus : actualiza
+    CatalogoMaestro "1" o-- "0..*" RestauranteAliado : describe a
+    RestauranteAliado "1" *-- "1..*" Plato : ofrece
+    PizarraMenus "0..*" --> "0..*" Plato : destaca
 
-    Cart "1" ..> "0..1" Order : se convierte en
-    Order "1" *-- "1..*" OrderItem : contiene
-    OrderItem "0..*" --> "1" Product : referencia
-    Order "1" --> "0..*" Payment : se paga con
-    Order "0..*" --> "0..1" Promotion : aplica
-    Order "1" --> "0..1" Delivery : se entrega en
-    Order "0..*" --> "0..1" SupportTicket : genera
+    OperadorTelefonico ..> CatalogoMaestro : lee en voz alta
+    OperadorTelefonico "1" --> "0..*" Comanda : escribe
+    Cliente "1" --> "0..*" Comanda : solicita
+    Comanda "1" *-- "1..*" LineaComanda : contiene
+    LineaComanda "0..*" --> "1" Plato : corresponde a
+    Comanda "0..*" --> "1" RestauranteAliado : se pide a
+    Comanda "0..*" --> "1" Direccion : se entrega en
 
-    Delivery "0..*" --> "1" Courier : asignada a
-    Delivery "0..*" --> "1" Zone : ocurre en
+    Coordinador "1" --> "0..*" AvisoCocina : realiza
+    AvisoCocina "0..*" --> "1" Comanda : comunica
+    Coordinador "1" --> "0..*" Envio : asigna
+    Comanda "1" --> "0..1" Envio : se despacha en
+    Envio "0..*" --> "1" Repartidor : realizado por
+    Envio "1" *-- "1" MapaRuta : lleva
+    Envio "1" --> "0..1" ReciboEntrega : se acredita con
 
-    Payment "1" *-- "1" PaymentMethod : usa
-    PaymentMethod <|-- Card
-    PaymentMethod <|-- Wallet
+    Repartidor "1" --> "0..*" Liquidacion : rinde
+    Cajero "1" --> "0..*" Liquidacion : recibe
+    Liquidacion "0..1" --> "1" Envio : cierra
+    Liquidacion "1" --> "1" ReciboEntrega : verifica
+    Liquidacion "0..*" --> "1" LibroCaja : se anota en
+    Liquidacion "0..*" --> "1..3" Sobre : reparte en
 
-    User "1" --> "0..*" Notification : recibe
+    AgenteCalidad "1" --> "0..*" EncuestaSatisfaccion : llena
+    EncuestaSatisfaccion "0..*" --> "1" Comanda : evalua

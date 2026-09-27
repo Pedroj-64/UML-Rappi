@@ -1,0 +1,166 @@
+%% ============================================================
+%% URBANEATS - DOMINIO 01: PERSONAS, ROLES Y SEDES
+%% Todos los actores del modelo manual: el cliente, el personal
+%% del centro de operaciones y el contacto del restaurante.
+%% Los identificadores son físicos (códigos de empleado, número
+%% de cliente en la libreta), no identificadores de sistema.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class Persona {
+        <<abstract>>
+        +String nombreCompleto
+        +String telefono
+        +String documentoIdentidad
+        +identificarse() String
+    }
+
+    class Cliente {
+        +Int numeroCliente
+        +Date primeraCompra
+        +Int pedidosRealizados
+        +dictarPedido() void
+        +pagarEnEfectivo(monto) Decimal
+        +firmarRecibo(recibo) void
+        +responderEncuesta(llamada) void
+    }
+
+    class Direccion {
+        +String calle
+        +String numero
+        +String entreCalles
+        +String barrio
+        +String ciudad
+        +String referencias
+        +esEntregable() Boolean
+    }
+
+    class ContactoRestaurante {
+        +String cargo
+        +confirmarDisponibilidad() ConfirmacionVerbal
+        +recibirAviso(aviso) void
+        +informarTiempoPreparacion() Int
+    }
+
+    class Empleado {
+        <<abstract>>
+        +String codigoEmpleado
+        +Turno turno
+        +Date fechaIngreso
+        +Boolean activo
+        +firmarAsistencia(hora) void
+    }
+
+    class AdministradorArchivo {
+        +recopilarMenu(fuente) void
+        +transcribir(fuente) void
+        +actualizarCatalogo(anotacion) void
+        +actualizarPizarra(entrada) void
+    }
+
+    class OperadorTelefonico {
+        +String extension
+        +atenderLlamada() ContactoCliente
+        +leerMenu(ficha) void
+        +tomarPedido(contacto) Comanda
+        +sellarHora(comanda) void
+        +entregarAMesaLogistica(comanda) void
+    }
+
+    class PromotorCampo {
+        +String zonaAsignada
+        +ofrecerProductos(catalogo) void
+        +tomarPedidoEnPunto(contacto) Comanda
+    }
+
+    class Coordinador {
+        +tomarComanda(mesa) Comanda
+        +avisarCocina(comanda, medio) AvisoCocina
+        +trazarRuta(callejero, comanda) MapaRuta
+        +asignarRepartidor(envio, repartidor) void
+    }
+
+    class Mensajero {
+        +llevarCopia(copia, restaurante) void
+        +traerConfirmacion() Int
+    }
+
+    class Repartidor {
+        +MedioTransporte transporte
+        +Boolean enBase
+        +Decimal fondoCambio
+        +recogerPedido(comanda) void
+        +entregarPedido(recibo) void
+        +cobrar(monto) Decimal
+        +rendirCuentas(cajero) Liquidacion
+    }
+
+    class Cajero {
+        +recibirRendicion(repartidor) Liquidacion
+        +calcularComisiones(liquidacion) DistribucionIngreso
+        +anotarEnLibro(asiento) void
+        +separarEnSobres(distribucion) void
+        +cerrarCaja(fecha) CierreCaja
+    }
+
+    class AgenteCalidad {
+        +seleccionarMuestra(fecha) MuestraDiaria
+        +llamarCliente(cliente) LlamadaSeguimiento
+        +llenarEncuesta(llamada) EncuestaSatisfaccion
+        +archivar(encuesta, carpeta) void
+    }
+
+    class CentroOperaciones {
+        +String direccion
+        +String telefonoCentral
+        +Time horaApertura
+        +Time horaCierre
+    }
+
+    class PuntoContacto {
+        +String nombre
+        +String ubicacion
+        +String horario
+    }
+
+    class Turno {
+        <<enumeration>>
+        MANANA
+        TARDE
+        NOCHE
+    }
+
+    class MedioTransporte {
+        <<enumeration>>
+        A_PIE
+        BICICLETA
+        MOTOCICLETA
+    }
+
+    %% ---- Clases externas referenciadas (definidas en otros diagramas) ----
+    class RestauranteAliado
+
+    %% ================== RELACIONES ==================
+    Persona <|-- Cliente
+    Persona <|-- Empleado
+    Persona <|-- ContactoRestaurante
+
+    Empleado <|-- AdministradorArchivo
+    Empleado <|-- OperadorTelefonico
+    Empleado <|-- PromotorCampo
+    Empleado <|-- Coordinador
+    Empleado <|-- Mensajero
+    Empleado <|-- Repartidor
+    Empleado <|-- Cajero
+    Empleado <|-- AgenteCalidad
+
+    Cliente "1" --> "1..*" Direccion : recibe en
+    ContactoRestaurante "1..*" --> "1" RestauranteAliado : representa a
+
+    CentroOperaciones "1" o-- "1..*" Empleado : emplea
+    CentroOperaciones "1" o-- "0..*" PuntoContacto : opera
+    PromotorCampo "0..*" --> "1" PuntoContacto : atiende en
+
+    Empleado "0..*" --> "1" Turno : cubre
+    Repartidor "0..*" --> "1" MedioTransporte : se moviliza en

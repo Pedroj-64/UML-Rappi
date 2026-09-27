@@ -1,0 +1,136 @@
+%% ============================================================
+%% URBANEATS - DOMINIO 06: ENCUESTAS DE SATISFACCION Y ANALISIS
+%% Proceso 4 (parte de atención al cliente). Al final del día se
+%% elige una muestra de pedidos liquidados, se llama a esos
+%% clientes, se llena una encuesta de papel y se archiva en
+%% carpetas. Con ellas y con los cierres de caja se evalúa la
+%% viabilidad del negocio antes de pensar en una herramienta digital.
+%% ============================================================
+classDiagram
+    direction TB
+
+    class MuestraDiaria {
+        +Date fecha
+        +Int tamano
+        +String criterioSeleccion
+        +seleccionar(comandas) void
+        +pendientes() LlamadaSeguimiento
+    }
+
+    class LlamadaSeguimiento {
+        +Date fecha
+        +Time hora
+        +Int intento
+        +ResultadoLlamada resultado
+        +Int duracionMin
+        +reprogramar(hora) void
+    }
+
+    class FormatoEncuesta {
+        +String version
+        +Date vigenteDesde
+        +imprimir() EncuestaSatisfaccion
+    }
+
+    class PreguntaEncuesta {
+        +Int numero
+        +String texto
+        +TipoPregunta tipo
+        +AspectoServicio aspecto
+    }
+
+    class EncuestaSatisfaccion {
+        +Int numeroFormulario
+        +Date fecha
+        +Int calificacionGeneral
+        +String comentarios
+        +Boolean completa
+        +promedio() Decimal
+    }
+
+    class RespuestaEncuesta {
+        +Int valorEscala
+        +Boolean valorSiNo
+        +String textoLibre
+    }
+
+    class CarpetaArchivo {
+        +String rotulo
+        +String periodo
+        +String ubicacion
+        +Int cantidadEncuestas
+        +agregar(encuesta) void
+        +indiceSatisfaccion() Decimal
+    }
+
+    class InformeCalidad {
+        +String periodo
+        +Decimal indiceSatisfaccion
+        +String principalesQuejas
+        +String recomendaciones
+        +redactar(carpetas) void
+    }
+
+    class InformeViabilidad {
+        +String periodo
+        +Int pedidosPorDia
+        +Decimal ingresosPorComision
+        +Decimal costosOperativos
+        +Decimal margen
+        +evaluar() Boolean
+        +justificarDigitalizacion() String
+    }
+
+    class ResultadoLlamada {
+        <<enumeration>>
+        CONTESTADA
+        NO_CONTESTA
+        NUMERO_EQUIVOCADO
+        RECHAZA_ENCUESTA
+    }
+
+    class TipoPregunta {
+        <<enumeration>>
+        ESCALA_1_A_5
+        SI_NO
+        ABIERTA
+    }
+
+    class AspectoServicio {
+        <<enumeration>>
+        ATENCION_TELEFONICA
+        TIEMPO_ENTREGA
+        ESTADO_COMIDA
+        TRATO_REPARTIDOR
+        EXACTITUD_PEDIDO
+        CAMBIO_CORRECTO
+    }
+
+    %% ---- Clases externas referenciadas (definidas en otros diagramas) ----
+    class AgenteCalidad
+    class Cliente
+    class Comanda
+    class CierreCaja
+
+    %% ================== RELACIONES ==================
+    AgenteCalidad "1" --> "0..*" MuestraDiaria : selecciona
+    MuestraDiaria "0..*" --> "1..*" Comanda : toma de
+    MuestraDiaria "1" *-- "1..*" LlamadaSeguimiento : planifica
+    AgenteCalidad "1" --> "0..*" LlamadaSeguimiento : realiza
+    LlamadaSeguimiento "0..*" --> "1" Cliente : dirigida a
+
+    LlamadaSeguimiento "1" --> "0..1" EncuestaSatisfaccion : produce
+    EncuestaSatisfaccion "0..*" --> "1" Comanda : evalua
+    EncuestaSatisfaccion "0..*" --> "1" FormatoEncuesta : usa
+    FormatoEncuesta "1" *-- "1..*" PreguntaEncuesta : contiene
+    EncuestaSatisfaccion "1" *-- "1..*" RespuestaEncuesta : registra
+    RespuestaEncuesta "0..*" --> "1" PreguntaEncuesta : responde a
+
+    CarpetaArchivo "1" o-- "0..*" EncuestaSatisfaccion : archiva
+    InformeCalidad "0..*" --> "1..*" CarpetaArchivo : analiza
+    InformeViabilidad "0..*" --> "1..*" CierreCaja : consolida
+    InformeViabilidad "0..*" --> "1..*" InformeCalidad : considera
+
+    LlamadaSeguimiento "0..*" --> "1" ResultadoLlamada : termina en
+    PreguntaEncuesta "0..*" --> "1" TipoPregunta : es
+    PreguntaEncuesta "0..*" --> "1" AspectoServicio : mide
