@@ -24,6 +24,24 @@ const SECCION_SECUENCIA = 'Diagramas de secuencia';
 
 /** Metadatos de presentación de cada diagrama (el orden lo marca el nombre del archivo). */
 const META = {
+  '00-dominio-mvp.mmd': {
+    id: 'dominio-mvp',
+    seccion: SECCION_CLASES,
+    titulo: 'Modelo de dominio del MVP (Urban Eats)',
+    descripcion: '13 clases de dominio de la aplicación: Cliente, Restaurante, Producto, Pedido, Repartidor, Liquidación y Calificación, con invariantes.'
+  },
+  '12-estados-pedido.mmd': {
+    id: 'estado-pedido',
+    seccion: SECCION_ESTADOS,
+    titulo: 'Estados del pedido (MVP)',
+    descripcion: 'PENDIENTE, ASIGNADO, EN_CAMINO, ENTREGADO y CANCELADO con las reglas RN-08 a RN-11.'
+  },
+  '13-secuencia-registrar-pedido.mmd': {
+    id: 'secuencia-registrar-pedido',
+    seccion: SECCION_SECUENCIA,
+    titulo: 'Registrar Pedido (MVP)',
+    descripcion: 'Cliente, pantalla, PedidoService, reglas y base de datos: validación RN-01 a RN-07 y transacción RN-08.'
+  },
   '00-general.mmd': {
     id: 'general',
     seccion: SECCION_CLASES,

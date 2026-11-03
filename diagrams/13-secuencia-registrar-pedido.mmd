@@ -1,0 +1,24 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant UI as ResumenPedido
+    participant PS as PedidoService
+    participant R as pedido.rules
+    participant DB as BaseDatosService
+
+    C->>UI: Confirmar pedido (direccion, pago, efectivo)
+    UI->>PS: registrar(datos)
+    PS->>R: validarPedido(items, productos, restaurante, direccion, pago, efectivo)
+    Note over R: RN-01 stock y visibilidad<br/>RN-02 cantidades<br/>RN-03 un restaurante<br/>RN-04 subtotal minimo<br/>RN-05 cobertura<br/>RN-07 efectivo cubre el total
+    alt hay reglas violadas
+        R-->>PS: ErrorRegla[]
+        PS-->>UI: fallo(errores)
+        UI-->>C: Muestra cada regla violada
+    else todo valido
+        R-->>PS: sin errores
+        PS->>PS: calcularCostos(items) RN-06 y codigo UE-n RN-08
+        PS->>DB: transaccion(descontar stock + crear Pedido PENDIENTE)
+        DB-->>PS: guardado
+        PS-->>UI: exito(pedido)
+        UI-->>C: Confirmacion con codigo y seguimiento
+    end

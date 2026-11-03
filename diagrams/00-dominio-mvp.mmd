@@ -1,0 +1,104 @@
+classDiagram
+    direction LR
+
+    class Cliente {
+        +Id id
+        +String nombre
+        +String email
+        +String telefono
+    }
+    class Direccion {
+        +String etiqueta
+        +String linea
+        +Ciudad ciudad
+    }
+    class MetodoPago {
+        +TipoMetodoPago tipo
+        +String nombre
+        +String detalle
+    }
+    class Restaurante {
+        +Id id
+        +String nombre
+        +String tipoCocina
+        +Ciudad ciudad
+        +Number calificacion
+        +Number tiempoEntregaMin
+        +Number tiempoEntregaMax
+    }
+    class Producto {
+        +Id id
+        +String nombre
+        +Categoria categoria
+        +Number precio
+        +Number stock
+        +Boolean visible
+    }
+    class OpcionProducto {
+        +String nombre
+        +Number precioExtra
+    }
+    class Pedido {
+        +String codigo
+        +EstadoPedido estado
+        +Date creadoEn
+        +Number montoEfectivo
+        +Number subtotal
+        +Number envio
+        +Number impuestos
+        +Number total
+    }
+    class ItemPedido {
+        +String nombre
+        +Number precioUnitario
+        +Number cantidad
+        +String notas
+    }
+    class Repartidor {
+        +Id id
+        +String nombre
+        +String telefono
+        +String vehiculo
+    }
+    class EvidenciaEntrega {
+        +Boolean sinContacto
+        +String firma
+        +String foto
+        +Date fecha
+    }
+    class Calificacion {
+        +Number estrellasRestaurante
+        +Number estrellasRepartidor
+        +String comentario
+    }
+    class Liquidacion {
+        +Number comision
+        +Number ivaComision
+        +Number totalRestaurante
+        +Number pagoRepartidor
+    }
+    class EstadoPedido {
+        <<enumeration>>
+        PENDIENTE
+        ASIGNADO
+        EN_CAMINO
+        ENTREGADO
+        CANCELADO
+    }
+
+    Cliente "1" *-- "0..*" Direccion : guarda
+    Cliente "1" *-- "0..*" MetodoPago : registra
+    Cliente "1" --> "0..*" Pedido : realiza
+    Restaurante "1" *-- "0..*" Producto : ofrece
+    Producto "1" *-- "0..*" OpcionProducto : permite
+    Restaurante "1" --> "0..*" Pedido : atiende
+    Pedido "1" *-- "1..*" ItemPedido : contiene
+    ItemPedido "0..*" --> "1" Producto : copia precio de
+    Pedido "0..*" --> "1" Direccion : entrega en
+    Pedido "0..*" --> "1" MetodoPago : se paga con
+    Repartidor "0..1" --> "0..*" Pedido : entrega
+    Pedido "1" *-- "0..1" EvidenciaEntrega : prueba
+    Pedido "1" *-- "0..1" Calificacion : recibe
+    Pedido "1" --> "0..1" Liquidacion : genera
+    Pedido ..> EstadoPedido
+

@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> PENDIENTE: registrar (RN-08)
+    PENDIENTE --> ASIGNADO: repartidor acepta (RN-09)
+    PENDIENTE --> CANCELADO: cliente cancela
+    ASIGNADO --> PENDIENTE: repartidor rechaza
+    ASIGNADO --> EN_CAMINO: recogida con codigo (RN-10)
+    ASIGNADO --> CANCELADO: cliente cancela
+    EN_CAMINO --> ENTREGADO: firma o foto (RN-11)
+    ENTREGADO --> [*]
+    CANCELADO --> [*]

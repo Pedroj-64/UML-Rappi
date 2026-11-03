@@ -75,7 +75,9 @@ npm run validate    # comprueba que los 12 diagramas compilan y renderizan
 npm run verify      # ambas cosas
 ```
 
-Estado actual: **12/12 diagramas OK** — 71 clases, 20 estados, 17 participantes y 237 relaciones.
+Estado actual: **15/15 diagramas OK**. Incluye el modelo de dominio del MVP (`00-dominio-mvp`, 13 clases), los estados del pedido (`12`) y la secuencia de Registrar Pedido (`13`).
+
+Visor publicado: https://pedroj-64.github.io/UML-Rappi/
 
 Luego abre `index.html` en el navegador (doble clic basta, no necesita servidor).
 
